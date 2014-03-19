@@ -5,17 +5,31 @@ PostgreSQL, on top of Ubuntu 12.10.
 ## Installation and Usage
 
     docker pull quay.io/aptible/postgresql
-    docker run quay.io/aptible/postgresql [options]
+    docker run quay.io/aptible/postgresql
 
-### Initializing an Attached Data Volume
+This will launch a PostgreSQL server that enforces SSL for any TCP connection. **Important note:** Because the key and certificate used for SSL negotiation are included in the Docker image, and shared by all Docker clients running the same version of the image, a PostgreSQL server launched with just `docker run` is **NOT** suitable for production.
+
+To generate a unique key/certificate pair, you have two options:
+
+1. Build directly from the Dockerfile, disabling caching:
+
+        docker build --no-cache .
+
+2. Initialize a new key and certificate in the host volume (in the PostgreSQL data directory) and mount that directory into the Docker container, as described below.
+
+### Initializing an attached data volume
 
     id=$(docker run -P -d quay.io/aptible/postgresql)
-    docker cp $id:/var/lib/postgresql /host/volume
+    docker cp $id:/var/lib/postgresql <host-volume>
     docker stop $id
 
 ### Creating a database user with password
 
-    docker run -v /host/volume/postgresql:/var/lib/postgresql quay.io/aptible/postgresql sh -c "/etc/init.d/postgresql start && psql --command \"CREATE USER user WITH SUPERUSER PASSWORD 'password';\""
+    docker run -v <host-volume>:/var/lib/postgresql quay.io/aptible/postgresql sh -c "/etc/init.d/postgresql start && psql --command \"CREATE USER user WITH SUPERUSER PASSWORD 'password';\""
+
+### Creating a database
+
+    docker run -v <host-volume>:/var/lib/postgresql quay.io/aptible/postgresql sh -c "/etc/init.d/postgresql start && psql --command \"CREATE DATABASE db;\""
 
 ## Available Tags
 
