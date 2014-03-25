@@ -25,7 +25,7 @@ To generate a unique key/certificate pair, you have two options:
 
 ### Creating a database user with password
 
-    docker run -v <host-volume>:/var/lib/postgresql quay.io/aptible/postgresql sh -c "/etc/init.d/postgresql start && psql --command \"CREATE USER user WITH SUPERUSER PASSWORD 'password';\""
+    docker run -v <host-volume>:/var/lib/postgresql quay.io/aptible/postgresql sh -c "/etc/init.d/postgresql start && psql --command \"CREATE USER aptible WITH SUPERUSER PASSWORD 'password';\""
 
 ### Creating a database
 
@@ -33,7 +33,7 @@ To generate a unique key/certificate pair, you have two options:
 
 ## Available Tags
 
-* `latest`: Currently PostgreSQL 9.3.3
+* `latest`: Currently PostgreSQL 9.3.4
 
 ## Tests
 
