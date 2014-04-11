@@ -16,21 +16,32 @@ To generate a unique key/certificate pair, you have two options:
 
         docker build --no-cache .
 
-2. Initialize a new key and certificate in the host volume (in the PostgreSQL data directory) and mount that directory into the Docker container, as described below.
+2. Initialize a new key and certificate in the host volume and mount that directory into the Docker container, as follows:
+
+        cd <host-mountpoint>/ssl
+        openssl req -new -newkey rsa:1024 -days 365000 -nodes -x509 \
+          -keyout server.key -subj "/CN=PostgreSQL" -out server.crt
+        chmod og-rwx server.key
+        docker run -v <host-mountpoint>/ssl:/etc/postgresql/9.3/ssl -u root \
+          quay.io/aptible/postgresql chown -R postgres:postgres /etc/postgresql/9.3
+        docker run -v <host-mountpoint>/ssl:/etc/postgresql/9.3/ssl \
+          quay.io/aptible/postgresql
+
+## Advanced Usage
 
 ### Initializing an attached data volume
 
     id=$(docker run -P -d quay.io/aptible/postgresql)
-    docker cp $id:/var/lib/postgresql <host-volume>
+    docker cp $id:/var/lib/postgresql <host-mountpoint>
     docker stop $id
 
 ### Creating a database user with password
 
-    docker run -v <host-volume>:/var/lib/postgresql quay.io/aptible/postgresql sh -c "/etc/init.d/postgresql start && psql --command \"CREATE USER aptible WITH SUPERUSER PASSWORD 'password';\""
+    docker run -v <host-mountpoint>/postgresql:/var/lib/postgresql quay.io/aptible/postgresql sh -c "/etc/init.d/postgresql start && psql --command \"CREATE USER aptible WITH SUPERUSER PASSWORD 'password';\""
 
 ### Creating a database
 
-    docker run -v <host-volume>:/var/lib/postgresql quay.io/aptible/postgresql sh -c "/etc/init.d/postgresql start && psql --command \"CREATE DATABASE db;\""
+    docker run -v <host-mountpoint>/postgresql:/var/lib/postgresql quay.io/aptible/postgresql sh -c "/etc/init.d/postgresql start && psql --command \"CREATE DATABASE db;\""
 
 ## Available Tags
 

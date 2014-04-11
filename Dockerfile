@@ -1,4 +1,4 @@
-FROM quay.io/aptible/ubuntu:12.10
+FROM quay.io/aptible/ubuntu:12.04
 
 # Install PostgreSQL 9.3.x from official Debian sources
 RUN locale-gen en_US.UTF-8 && update-locale LANG=en_US.UTF-8
@@ -9,17 +9,20 @@ RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys \
     apt-get -y install python-software-properties software-properties-common \
       postgresql-9.3 postgresql-client-9.3 postgresql-contrib-9.3
 
-USER postgres
+# Install test dependencies
+RUN apt-get -y install wget unzip
 
 # Install self-signed certificate and disallow non-SSL connections
 ADD templates/etc/postgresql/9.3/main /etc/postgresql/9.3/main
-WORKDIR /var/lib/postgresql/9.3/main
-RUN openssl req -new -newkey rsa:1024 -days 365000 -nodes -x509 \
+RUN mkdir -p /etc/postgresql/9.3/ssl && cd /etc/postgresql/9.3/ssl && \
+    openssl req -new -newkey rsa:1024 -days 365000 -nodes -x509 \
       -keyout server.key -subj "/CN=PostgreSQL" -out server.crt && \
-    chmod og-rwx server.key
+    chmod og-rwx server.key && chown -R postgres:postgres /etc/postgresql/9.3
 
 ADD test /tmp/test
 RUN bats /tmp/test
+
+USER postgres
 
 VOLUME ["/var/lib/postgresql"]
 EXPOSE 5432
