@@ -9,6 +9,9 @@ RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys \
     apt-get -y install python-software-properties software-properties-common \
       postgresql-9.3 postgresql-client-9.3 postgresql-contrib-9.3
 
+# Install PostGIS
+RUN apt-get -y install postgresql-9.3-postgis-2.1
+
 # Install test dependencies
 RUN apt-get -y install wget unzip
 
