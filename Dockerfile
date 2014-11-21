@@ -1,4 +1,4 @@
-FROM quay.io/aptible/ubuntu:12.04
+FROM quay.io/aptible/ubuntu:14.04
 
 # Install PostgreSQL 9.3.x from official Debian sources
 RUN locale-gen en_US.UTF-8 && update-locale LANG=en_US.UTF-8

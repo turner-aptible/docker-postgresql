@@ -45,7 +45,7 @@ To generate a unique key/certificate pair, you have two options:
 
 ## Available Tags
 
-* `latest`: Currently PostgreSQL 9.3.4
+* `latest`: Currently PostgreSQL 9.3.5
 
 ## Tests
 
