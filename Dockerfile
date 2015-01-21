@@ -1,5 +1,9 @@
 FROM quay.io/aptible/ubuntu:14.04
 
+# Temporary workaround for host-container user conflicts on Linux Kernel >= 3.15
+# See https://github.com/docker/docker/issues/6345 for details.
+RUN ln -s -f /bin/true /usr/bin/chfn
+
 # Install PostgreSQL 9.3.x from official Debian sources
 RUN locale-gen en_US.UTF-8 && update-locale LANG=en_US.UTF-8
 ADD templates/etc/apt/sources.list.d /etc/apt/sources.list.d
