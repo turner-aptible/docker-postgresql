@@ -32,14 +32,14 @@ uninstall-heartbleeder() {
 
 @test "It should require a password" {
   run psql -U postgres -l
-   [ "$status" -ne "0" ]
+  [ "$status" -ne "0" ]
 }
 
 @test "It should use UTF-8 for the default encoding" {
-  sudo -u postgres psql -l | grep en_US.UTF-8
+  su postgres -c "psql -l" | grep en_US.utf8
 }
 
 @test "It should support PostGIS" {
-  run sudo -u postgres psql -U postgres --command "CREATE EXTENSION postgis;"
-   [ "$status" -eq "0" ]
+  run su postgres -c "psql --command \"CREATE EXTENSION postgis;\""
+  [ "$status" -eq "0" ]
 }
