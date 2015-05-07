@@ -22,9 +22,9 @@ To generate a unique key/certificate pair, you have two options:
         openssl req -new -newkey rsa:1024 -days 365000 -nodes -x509 \
           -keyout server.key -subj "/CN=PostgreSQL" -out server.crt
         chmod og-rwx server.key
-        docker run -v <host-mountpoint>/ssl:/etc/postgresql/9.3/ssl -u root \
-          quay.io/aptible/postgresql chown -R postgres:postgres /etc/postgresql/9.3
-        docker run -v <host-mountpoint>/ssl:/etc/postgresql/9.3/ssl \
+        docker run -v <host-mountpoint>/ssl:/etc/postgresql/9.4/ssl -u root \
+          quay.io/aptible/postgresql chown -R postgres:postgres /etc/postgresql/9.4
+        docker run -v <host-mountpoint>/ssl:/etc/postgresql/9.4/ssl \
           quay.io/aptible/postgresql
 
 ## Advanced Usage
@@ -45,7 +45,7 @@ To generate a unique key/certificate pair, you have two options:
 
 ## Available Tags
 
-* `latest`: Currently PostgreSQL 9.3.6
+* `latest`: Currently PostgreSQL 9.4.1
 
 ## Tests
 
