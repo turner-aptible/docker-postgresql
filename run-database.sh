@@ -1,5 +1,7 @@
 #!/bin/bash
 
+command="/usr/lib/postgresql/9.3/bin/postgres -D "$DATA_DIRECTORY" -c config_file=/etc/postgresql/9.3/main/postgresql.conf"
+
 if [[ "$1" == "--initialize" ]]; then
   chown -R postgres:postgres "$DATA_DIRECTORY"
 
@@ -11,8 +13,23 @@ if [[ "$1" == "--initialize" ]]; then
     /etc/init.d/postgresql stop
 COMMANDS
 
-  exit
-fi
+elif [[ "$1" == "--client" ]]; then
+  [ -z "$2" ] && echo "docker run -it aptible/postgresql --client postgresql://..." && exit
+  psql "$2"
 
-# Run postgres in the foreground so the docker container stays alive.
-su postgres -c "/usr/lib/postgresql/9.3/bin/postgres -D "$DATA_DIRECTORY" -c config_file=/etc/postgresql/9.3/main/postgresql.conf"
+elif [[ "$1" == "--dump" ]]; then
+  [ -z "$2" ] && echo "docker run aptible/postgresql --dump postgresql://... > dump.psql" && exit
+  pg_dump "$2"
+
+elif [[ "$1" == "--restore" ]]; then
+  [ -z "$2" ] && echo "docker run -i aptible/postgresql --restore postgresql://... < dump.psql" && exit
+  psql "$2"
+
+elif [[ "$1" == "--readonly" ]]; then
+  echo "Starting PostgreSQL in read-only mode..."
+  su postgres -c "$command --default_transaction_read_only=on"
+
+else
+  su postgres -c "$command"
+
+fi
