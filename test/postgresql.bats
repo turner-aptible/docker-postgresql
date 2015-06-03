@@ -18,9 +18,9 @@ uninstall-heartbleeder() {
   rm -rf heartbleeder.zip heartbleeder
 }
 
-@test "It should install PostgreSQL 9.3.6" {
-  run /usr/lib/postgresql/9.3/bin/postgres --version
-  [[ "$output" =~ "9.3.6"  ]]
+@test "It should install PostgreSQL 9.4.2" {
+  run /usr/lib/postgresql/9.4/bin/postgres --version
+  [[ "$output" =~ "9.4.2"  ]]
 }
 
 @test "It should protect against CVE-2014-0160" {
