@@ -1,14 +1,23 @@
 # ![](https://gravatar.com/avatar/11d3bc4c3163e3d238d558d5c9d98efe?s=64) aptible/postgresql
 [![Docker Repository on Quay.io](https://quay.io/repository/aptible/postgresql/status "Docker Repository on Quay.io")](https://quay.io/repository/aptible/postgresql)
 
-PostgreSQL, on top of Ubuntu 14.04.
+PostgreSQL, on top of Debian Wheezy.
 
 ## Installation and Usage
 
     docker pull quay.io/aptible/postgresql
-    docker run quay.io/aptible/postgresql
 
-This will launch a PostgreSQL server that enforces SSL for any TCP connection. **Important note:** Because the key and certificate used for SSL negotiation are included in the Docker image, and shared by all Docker clients running the same version of the image, a PostgreSQL server launched with just `docker run` is **NOT** suitable for production.
+This is an image conforming to the [Aptible database specification](https://support.aptible.com/topics/paas/deploy-custom-database/). To run a server for development purposes, execute
+
+    docker create --name data quay.io/aptible/postgresql
+    docker run --volumes-from data -e USERNAME=aptible -e PASSPHRASE=pass -e DB=db quay.io/aptible/postgresql --initialize
+    docker run --volumes-from data -P quay.io/aptible/postgresql
+
+The first command sets up a data container named `data` which will hold the configuration and data for the database. The second command creates a PostgreSQL instance with a username, passphrase and database name of your choice. The third command starts the database server.
+
+### SSL
+
+The PostgreSQL server is configured to enforce SSL for any TCP connection. **Important note:** Because the key and certificate used for SSL negotiation are included in the Docker image, and shared by all Docker clients running the same version of the image, a PostgreSQL server launched with just `docker run` is **NOT** suitable for production.
 
 To generate a unique key/certificate pair, you have two options:
 
@@ -26,22 +35,6 @@ To generate a unique key/certificate pair, you have two options:
           quay.io/aptible/postgresql chown -R postgres:postgres /etc/postgresql/9.4
         docker run -v <host-mountpoint>/ssl:/etc/postgresql/9.4/ssl \
           quay.io/aptible/postgresql
-
-## Advanced Usage
-
-### Initializing an attached data volume
-
-    id=$(docker run -P -d quay.io/aptible/postgresql)
-    docker cp $id:/var/lib/postgresql <host-mountpoint>
-    docker stop $id
-
-### Creating a database user with password
-
-    docker run -v <host-mountpoint>/postgresql:/var/lib/postgresql quay.io/aptible/postgresql sh -c "/etc/init.d/postgresql start && psql --command \"CREATE USER aptible WITH SUPERUSER PASSWORD 'password';\""
-
-### Creating a database
-
-    docker run -v <host-mountpoint>/postgresql:/var/lib/postgresql quay.io/aptible/postgresql sh -c "/etc/init.d/postgresql start && psql --command \"CREATE DATABASE db;\""
 
 ## Available Tags
 
