@@ -5,7 +5,7 @@ PostgreSQL, on top of Debian Wheezy.
 
 ## Installation and Usage
 
-    docker pull quay.io/aptible/postgresql
+    docker pull quay.io/aptible/postgresql:${VERSION:-latest}
 
 This is an image conforming to the [Aptible database specification](https://support.aptible.com/topics/paas/deploy-custom-database/). To run a server for development purposes, execute
 
@@ -36,9 +36,10 @@ To generate a unique key/certificate pair, you have two options:
         docker run -v <host-mountpoint>/ssl:/etc/postgresql/9.4/ssl \
           quay.io/aptible/postgresql
 
-## Available Tags
+## Available Versions (Tags)
 
-* `latest`: Currently PostgreSQL 9.4.2
+* `latest`: Currently PostgreSQL 9.4.3
+* `9.4`: PostgreSQL 9.4.3
 
 ## Tests
 
