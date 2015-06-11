@@ -1,5 +1,5 @@
 DOCKER = docker
-TAGS = 9.4
+TAGS = 9.3 9.4
 
 all: release
 
