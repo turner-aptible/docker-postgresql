@@ -1,17 +1,13 @@
 DOCKER = docker
-REPO = quay.io/aptible/postgresql
-
-TAG = $(shell git rev-parse --abbrev-ref HEAD 2>/dev/null)
-ifeq ($(TAG), master)
-	TAG = latest
-else ifeq ($(TAG), HEAD)
-	TAG = latest
-endif
+TAGS = 9.3 9.4
 
 all: release
 
-release: test build
-	$(DOCKER) push $(REPO)
+release: $(TAGS)
+	$(DOCKER) push quay.io/aptible/postgresql
 
-build:
-	$(DOCKER) build -t $(REPO):$(TAG) .
+build: $(TAGS)
+
+.PHONY: $(TAGS)
+$(TAGS):
+	$(DOCKER) build -t quay.io/aptible/postgresql:$@ $@
