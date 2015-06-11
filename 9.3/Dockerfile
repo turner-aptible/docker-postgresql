@@ -15,8 +15,7 @@ RUN apt-install locales wget unzip \
     && localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
 ENV LANG en_US.utf8
 
-ADD shared/templates/etc /etc
-ADD 9.3/templates/etc /etc
+ADD templates/etc /etc
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys \
       B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8 && \
     apt-get update && \
@@ -34,8 +33,7 @@ RUN mkdir -p /etc/postgresql/9.3/ssl && cd /etc/postgresql/9.3/ssl && \
 ENV DATA_DIRECTORY /var/db
 RUN mkdir $DATA_DIRECTORY && chown -R postgres $DATA_DIRECTORY
 
-ADD shared/test /tmp/test
-ADD 9.3/test /tmp/test
+ADD test /tmp/test
 RUN su postgres -c "/usr/lib/postgresql/9.3/bin/initdb -D "$DATA_DIRECTORY"" && \
     bats /tmp/test && \
     rm -rf "$DATA_DIRECTORY"/*

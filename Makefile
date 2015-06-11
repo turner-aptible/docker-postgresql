@@ -10,4 +10,4 @@ build: $(TAGS)
 
 .PHONY: $(TAGS)
 $(TAGS):
-	$(DOCKER) build -t quay.io/aptible/postgresql:$@ -f Dockerfile-$@ .
+	$(DOCKER) build -t quay.io/aptible/postgresql:$@ $@
