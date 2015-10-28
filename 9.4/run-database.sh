@@ -19,11 +19,15 @@ elif [[ "$1" == "--client" ]]; then
 
 elif [[ "$1" == "--dump" ]]; then
   [ -z "$2" ] && echo "docker run aptible/postgresql --dump postgresql://... > dump.psql" && exit
-  pg_dump "$2"
+  # If the file /dump-output exists, write output there. Otherwise, use stdout.
+  [ -e /dump-output ] && exec 3>/dump-output || exec 3>&1
+  pg_dump "$2" >&3
 
 elif [[ "$1" == "--restore" ]]; then
   [ -z "$2" ] && echo "docker run -i aptible/postgresql --restore postgresql://... < dump.psql" && exit
-  psql "$2"
+  # If the file /restore-input exists, read input there. Otherwise, use stdin.
+  [ -e /restore-input ] && exec 3</restore-input || exec 3<&0
+  psql "$2" <&3
 
 elif [[ "$1" == "--readonly" ]]; then
   echo "Starting PostgreSQL in read-only mode..."
