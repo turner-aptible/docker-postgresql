@@ -2,6 +2,8 @@
 
 command="/usr/lib/postgresql/$PG_VERSION/bin/postgres -D "$DATA_DIRECTORY" -c config_file=/etc/postgresql/$PG_VERSION/main/postgresql.conf"
 
+sed "s:DATA_DIRECTORY:${DATA_DIRECTORY}:g" /etc/postgresql/${PG_VERSION}/main/postgresql.conf.erb > /etc/postgresql/${PG_VERSION}/main/postgresql.conf
+
 if [[ "$1" == "--initialize" ]]; then
   chown -R postgres:postgres "$DATA_DIRECTORY"
 

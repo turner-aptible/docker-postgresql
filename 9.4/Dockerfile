@@ -33,13 +33,11 @@ RUN mkdir -p /etc/postgresql/9.4/ssl && cd /etc/postgresql/9.4/ssl && \
 ENV DATA_DIRECTORY /var/db
 RUN mkdir $DATA_DIRECTORY && chown -R postgres $DATA_DIRECTORY
 
+ADD run-database.sh /usr/bin/
+
 ADD test /tmp/test
-RUN su postgres -c "/usr/lib/postgresql/9.4/bin/initdb -D "$DATA_DIRECTORY"" && \
-    bats /tmp/test && \
-    rm -rf "$DATA_DIRECTORY"/*
+RUN bats /tmp/test
 
 VOLUME ["$DATA_DIRECTORY"]
 EXPOSE 5432
-
-ADD run-database.sh /usr/bin/
-ENTRYPOINT ["run-database.sh"]
+ENTRYPOINT ["/usr/bin/run-database.sh"]
