@@ -40,9 +40,9 @@ To generate a unique key/certificate pair, you have two options:
 
 ## Available Versions (Tags)
 
-* `latest`: Currently PostgreSQL 9.4.3
-* `9.4`: PostgreSQL 9.4.3
-* `9.3`: PostgreSQL 9.3.8
+* `latest`: Currently PostgreSQL 9.4.5
+* `9.4`: PostgreSQL 9.4.5
+* `9.3`: PostgreSQL 9.3.10
 
 ## Tests
 
