@@ -5,16 +5,16 @@
 data_directory = '__DATA_DIRECTORY__'
 hba_file = '__CONF_DIRECTORY__/main/pg_hba.conf'
 ident_file = '__CONF_DIRECTORY__/main/pg_ident.conf'
-external_pid_file = '/var/run/postgresql/__PG_VERSION__-main.pid'
+external_pid_file = '__RUN_DIRECTORY__/__PG_VERSION__-main.pid'
 
 #------------------------------------------------------------------------------
 # CONNECTIONS AND AUTHENTICATION
 #------------------------------------------------------------------------------
 
 listen_addresses = '*'
-port = 5432
+port = __PORT__
 max_connections = 250
-unix_socket_directories = '/var/run/postgresql'
+unix_socket_directories = '__RUN_DIRECTORY__'
 ssl = on
 ssl_ciphers = 'DEFAULT:!LOW:!EXP:!MD5:@STRENGTH'
 ssl_cert_file = '__CONF_DIRECTORY__/ssl/server.crt'

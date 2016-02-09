@@ -26,7 +26,3 @@ parse_url()
 
   database="$(echo $url | grep / | cut -d/ -f2-)"
 }
-
-random_passphrase() {
-  head -c 20 /dev/urandom | base64 | tr -d '/'
-}

@@ -100,14 +100,8 @@ uninstall-heartbleeder() {
   [ "${lines[-1]}" = "INSERT 0 1" ]
 }
 
-@test "It should create a replication user and print a connection URL" {
-  run /usr/bin/run-database.sh --activate-leader postgresql://aptible:foobar@127.0.0.1:5432/db
-  [ "$status" -eq "0" ]
-  run psql --command '\dt' $output
-}
-
-@test "It should set up a follower" {
-  export FOLLOWER_DIRECTORY=/tmp/follower
+@test "It should set up a follower with --initialize-from" {
+  FOLLOWER_DIRECTORY=/tmp/follower
   FOLLOWER_DATA="${FOLLOWER_DIRECTORY}/data"
   FOLLOWER_CONF="${FOLLOWER_DIRECTORY}/conf"
   FOLLOWER_RUN="${FOLLOWER_DIRECTORY}/run"
@@ -121,27 +115,27 @@ uninstall-heartbleeder() {
   mkdir "$FOLLOWER_DATA"
   mkdir "$FOLLOWER_RUN" && chown postgres:postgres "$FOLLOWER_RUN"
 
-  export $(/usr/bin/run-database.sh --activate-leader postgresql://aptible:foobar@127.0.0.1:$MASTER_PORT/db)
+  MASTER_URL="postgresql://aptible:foobar@127.0.0.1:$MASTER_PORT/db"
+  SLAVE_URL="postgresql://aptible:foobar@127.0.0.1:$SLAVE_PORT/db"
 
-  DATA_DIRECTORY="$FOLLOWER_DATA" CONF_DIRECTORY="$FOLLOWER_CONF" /usr/bin/run-database.sh --initialize-follower
+  DATA_DIRECTORY="$FOLLOWER_DATA" CONF_DIRECTORY="$FOLLOWER_CONF" RUN_DIRECTORY="$FOLLOWER_RUN" PORT="$SLAVE_PORT" \
+    /usr/bin/run-database.sh --initialize-from "$MASTER_URL"
 
-  su postgres -c "/usr/lib/postgresql/$PG_VERSION/bin/postgres -D "$FOLLOWER_DIRECTORY" \
-                  -c config_file=$FOLLOWER_CONF/main/postgresql.conf \
-                  -c port=$SLAVE_PORT -c data_directory=$FOLLOWER_DATA \
-                  -c external_pid_file=$FOLLOWER_RUN/9.4-main.pid" &
+  DATA_DIRECTORY="$FOLLOWER_DATA" CONF_DIRECTORY="$FOLLOWER_CONF" RUN_DIRECTORY="$FOLLOWER_RUN" PORT="$SLAVE_PORT" \
+    /usr/bin/run-database.sh &
 
-  until su postgres -c "psql --command '\dt' -p $SLAVE_PORT"; do sleep 0.1; done
+  until run-database.sh --client "$SLAVE_URL" --command '\dt'; do sleep 0.1; done
+  run-database.sh --client "$MASTER_URL" --command "CREATE TABLE foo (i int);"
+  run-database.sh --client "$MASTER_URL" --command "INSERT INTO foo VALUES (1234);"
+  until run-database.sh --client "$SLAVE_URL" --command "SELECT * FROM foo;"; do sleep 0.1; done
 
-  su postgres -c "psql -p $MASTER_PORT --command \"CREATE TABLE foo (i int);\""
-  su postgres -c "psql -p $MASTER_PORT --command \"INSERT INTO foo VALUES (1234);\""
-  until su postgres -c "psql -p $SLAVE_PORT --command \"SELECT * FROM foo;\""; do sleep 0.1; done
-  run su postgres -c "psql -p $SLAVE_PORT --command \"SELECT * FROM foo;\""
+  run run-database.sh --client "$SLAVE_URL" --command "SELECT * FROM foo;"
   [ "$status" -eq "0" ]
   [ "${lines[0]}" = "  i   " ]
   [ "${lines[1]}" = "------" ]
   [ "${lines[2]}" = " 1234" ]
   [ "${lines[3]}" = "(1 row)" ]
 
-  kill $(cat $FOLLOWER_RUN/9.4-main.pid)
-  rm -rf $FOLLOWER_DIRECTORY
+  kill $(cat "$FOLLOWER_RUN/$PG_VERSION-main.pid")
+  rm -rf "$FOLLOWER_DIRECTORY"
 }
