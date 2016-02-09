@@ -2,10 +2,10 @@
 # FILE LOCATIONS
 #------------------------------------------------------------------------------
 
-data_directory = 'DATA_DIRECTORY'
-hba_file = '/etc/postgresql/9.4/main/pg_hba.conf'
-ident_file = '/etc/postgresql/9.4/main/pg_ident.conf'
-external_pid_file = '/var/run/postgresql/9.4-main.pid'
+data_directory = '__DATA_DIRECTORY__'
+hba_file = '/etc/postgresql/__PG_VERSION__/main/pg_hba.conf'
+ident_file = '/etc/postgresql/__PG_VERSION__/main/pg_ident.conf'
+external_pid_file = '/var/run/postgresql/__PG_VERSION__-main.pid'
 
 #------------------------------------------------------------------------------
 # CONNECTIONS AND AUTHENTICATION
@@ -17,8 +17,8 @@ max_connections = 250
 unix_socket_directories = '/var/run/postgresql'
 ssl = on
 ssl_ciphers = 'DEFAULT:!LOW:!EXP:!MD5:@STRENGTH'
-ssl_cert_file = '/etc/postgresql/9.4/ssl/server.crt'
-ssl_key_file = '/etc/postgresql/9.4/ssl/server.key'
+ssl_cert_file = '/etc/postgresql/__PG_VERSION__/ssl/server.crt'
+ssl_key_file = '/etc/postgresql/__PG_VERSION__/ssl/server.key'
 
 #------------------------------------------------------------------------------
 # RESOURCE USAGE (except WAL)

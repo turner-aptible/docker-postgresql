@@ -1,0 +1,2 @@
+export POSTGRES_VERSION = 9.4
+

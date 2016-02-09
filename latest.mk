@@ -1,2 +1,2 @@
-LATEST_TAG = 9.3
+LATEST_TAG = 9.4
 

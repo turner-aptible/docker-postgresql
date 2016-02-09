@@ -1,8 +1,14 @@
 #!/bin/bash
+set -o errexit
 
-command="/usr/lib/postgresql/$PG_VERSION/bin/postgres -D "$DATA_DIRECTORY" -c config_file=/etc/postgresql/$PG_VERSION/main/postgresql.conf"
 
-sed "s:DATA_DIRECTORY:${DATA_DIRECTORY}:g" /etc/postgresql/${PG_VERSION}/main/postgresql.conf.erb > /etc/postgresql/${PG_VERSION}/main/postgresql.conf
+PG_CONF="/etc/postgresql/${PG_VERSION}/main/postgresql.conf"
+command="/usr/lib/postgresql/$PG_VERSION/bin/postgres -D '$DATA_DIRECTORY' -c config_file='$PG_CONF'"
+
+
+cp "$PG_CONF"{.template,}
+sed -i "s:__DATA_DIRECTORY__:${DATA_DIRECTORY}:g" "$PG_CONF"
+sed -i "s:__PG_VERSION__:${PG_VERSION}:g" "$PG_CONF"
 
 if [[ "$1" == "--initialize" ]]; then
   chown -R postgres:postgres "$DATA_DIRECTORY"
