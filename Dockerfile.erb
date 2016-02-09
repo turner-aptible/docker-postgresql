@@ -10,11 +10,12 @@ RUN groupadd -r postgres && useradd -r -g postgres postgres
 # See https://github.com/docker/docker/issues/6345 for details.
 RUN ln -s -f /bin/true /usr/bin/chfn
 
-# Install PostgreSQL from official Debian sources
-RUN apt-install locales wget unzip \
+# Install some helpers we'll need
+RUN apt-install locales wget unzip sudo \
     && localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
 ENV LANG en_US.utf8
 
+# And now install Postgres from its own repos
 ADD templates/etc/apt /etc/apt
 
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8 \
@@ -30,14 +31,6 @@ RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys B97B0AFCAA1A47F044F
 
 ENV CONF_DIRECTORY /etc/postgresql/$PG_VERSION
 ADD templates/etc/postgresql/PG_VERSION $CONF_DIRECTORY
-
-# Install self-signed certificate and disallow non-SSL connections
-RUN mkdir -p "${CONF_DIRECTORY}/ssl" \
- && cd "${CONF_DIRECTORY}/ssl" \
- && openssl req -new -newkey rsa:1024 -days 365000 -nodes -x509 \
-    -keyout server.key -subj "/CN=PostgreSQL" -out server.crt \
- && chmod og-rwx server.key \
- && chown -R postgres:postgres "${CONF_DIRECTORY}/ssl"
 
 ENV DATA_DIRECTORY /var/db
 RUN mkdir $DATA_DIRECTORY && chown -R postgres $DATA_DIRECTORY

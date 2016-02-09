@@ -6,32 +6,50 @@ set -o errexit
 . /usr/bin/utilities.sh
 
 
-PG_CONF="${CONF_DIRECTORY}/main/postgresql.conf"
-command="/usr/lib/postgresql/$PG_VERSION/bin/postgres -D '$DATA_DIRECTORY' -c config_file='$PG_CONF'"
+function pg_init_conf () {
+  # Set up the PG config files
+  PG_CONF="${CONF_DIRECTORY}/main/postgresql.conf"
+  cp "$PG_CONF"{.template,}
+  sed -i "s:__DATA_DIRECTORY__:${DATA_DIRECTORY}:g" "$PG_CONF"
+  sed -i "s:__CONF_DIRECTORY__:${CONF_DIRECTORY}:g" "$PG_CONF"
+  sed -i "s:__PG_VERSION__:${PG_VERSION}:g" "$PG_CONF"
 
-cp "$PG_CONF"{.template,}
-sed -i "s:__DATA_DIRECTORY__:${DATA_DIRECTORY}:g" "$PG_CONF"
-sed -i "s:__CONF_DIRECTORY__:${CONF_DIRECTORY}:g" "$PG_CONF"
-sed -i "s:__PG_VERSION__:${PG_VERSION}:g" "$PG_CONF"
+  # Set up a self-signed SSL cert
+  mkdir -p "${CONF_DIRECTORY}/ssl"
+  cd "${CONF_DIRECTORY}/ssl"
+  openssl req -new -newkey rsa:1024 -days 365000 -nodes -x509 -keyout server.key -subj "/CN=PostgreSQL" -out server.crt
+  chmod og-rwx server.key
+  chown -R postgres:postgres "${CONF_DIRECTORY}/ssl"
+}
+
+function pg_init_data () {
+  chown -R postgres:postgres "$DATA_DIRECTORY"
+  chmod go-rwx "$DATA_DIRECTORY"
+}
+
+
+function pg_run_server () {
+  # Run pg! Passthrough options.
+  echo "Running PG with options:" "$@"
+  sudo -u postgres "/usr/lib/postgresql/$PG_VERSION/bin/postgres" -D "$DATA_DIRECTORY" -c "config_file=$PG_CONF" "$@"
+}
 
 
 if [[ "$1" == "--initialize" ]]; then
-  chown -R postgres:postgres "$DATA_DIRECTORY"
+  pg_init_conf
+  pg_init_data
 
-  su postgres <<COMMANDS
-    /usr/lib/postgresql/$PG_VERSION/bin/initdb -D "$DATA_DIRECTORY"
-    /etc/init.d/postgresql start
-    psql --command "CREATE USER ${USERNAME:-aptible} WITH SUPERUSER PASSWORD '$PASSPHRASE'"
-    psql --command "CREATE DATABASE ${DATABASE:-db}"
-    /etc/init.d/postgresql stop
-COMMANDS
+  sudo -u postgres "/usr/lib/postgresql/$PG_VERSION/bin/initdb" -D "$DATA_DIRECTORY"
+  sudo -u postgres /etc/init.d/postgresql start
+  sudo -u postgres psql --command "CREATE USER ${USERNAME:-aptible} WITH SUPERUSER PASSWORD '$PASSPHRASE'"
+  sudo -u postgres psql --command "CREATE DATABASE ${DATABASE:-db}"
+  sudo -u postgres /etc/init.d/postgresql stop
 
 elif [[ "$1" == "--initialize-follower" ]]; then
-  chown -R postgres:postgres "$DATA_DIRECTORY"
-  chmod 0700 "$DATA_DIRECTORY"
-  su postgres <<COMMANDS
-    pg_basebackup -D $DATA_DIRECTORY -R -d $REPLICATION_URL
-COMMANDS
+  pg_init_conf
+  pg_init_data
+
+  sudo -u postgres pg_basebackup -D "$DATA_DIRECTORY" -R -d "$REPLICATION_URL"
 
 elif [[ "$1" == "--activate-leader" ]]; then
   [ -z "$2" ] && echo "docker run -it aptible/postgresql --activate-leader postgresql://..." && exit 1
@@ -61,10 +79,11 @@ elif [[ "$1" == "--restore" ]]; then
   psql "$2" <&3
 
 elif [[ "$1" == "--readonly" ]]; then
-  echo "Starting PostgreSQL in read-only mode..."
-  su postgres -c "$command --default_transaction_read_only=on"
+  pg_init_conf
+  pg_run_server --default_transaction_read_only=on
 
 else
-  su postgres -c "$command"
+  pg_init_conf
+  pg_run_server
 
 fi
