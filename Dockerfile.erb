@@ -16,7 +16,6 @@ RUN apt-install locales wget unzip \
 ENV LANG en_US.utf8
 
 ADD templates/etc/apt /etc/apt
-ADD templates/etc/postgresql/PG_VERSION /etc/postgresql/$PG_VERSION
 
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8 \
  && apt-get update \
@@ -29,18 +28,22 @@ RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys B97B0AFCAA1A47F044F
     "postgresql-$PG_VERSION-postgis-2.1" \
  && rm -rf /var/lib/apt/lists/*
 
+ENV CONF_DIRECTORY /etc/postgresql/$PG_VERSION
+ADD templates/etc/postgresql/PG_VERSION $CONF_DIRECTORY
+
 # Install self-signed certificate and disallow non-SSL connections
-RUN mkdir -p "/etc/postgresql/$PG_VERSION/ssl" \
- && cd "/etc/postgresql/$PG_VERSION/ssl" \
+RUN mkdir -p "${CONF_DIRECTORY}/ssl" \
+ && cd "${CONF_DIRECTORY}/ssl" \
  && openssl req -new -newkey rsa:1024 -days 365000 -nodes -x509 \
     -keyout server.key -subj "/CN=PostgreSQL" -out server.crt \
  && chmod og-rwx server.key \
- && chown -R postgres:postgres "/etc/postgresql/$PG_VERSION"
+ && chown -R postgres:postgres "${CONF_DIRECTORY}/ssl"
 
 ENV DATA_DIRECTORY /var/db
 RUN mkdir $DATA_DIRECTORY && chown -R postgres $DATA_DIRECTORY
 
 ADD bin/run-database.sh /usr/bin/
+ADD bin/utilities.sh /usr/bin/
 
 ADD $PG_VERSION/test /tmp/test
 ADD test /tmp/test
