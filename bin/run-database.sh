@@ -1,5 +1,6 @@
 #!/bin/bash
 set -o errexit
+set -o pipefail
 
 
 # shellcheck disable=SC1091
@@ -13,12 +14,18 @@ DEFAULT_PORT="5432"
 function pg_init_conf () {
   # Set up the PG config files
   PG_CONF="${CONF_DIRECTORY}/main/postgresql.conf"
-  cp "$PG_CONF"{.template,}
-  sed -i "s:__DATA_DIRECTORY__:${DATA_DIRECTORY}:g" "$PG_CONF"
-  sed -i "s:__CONF_DIRECTORY__:${CONF_DIRECTORY}:g" "$PG_CONF"
-  sed -i "s:__RUN_DIRECTORY__:${RUN_DIRECTORY:-"$DEFAULT_RUN_DIRECTORY"}:g" "$PG_CONF"
-  sed -i "s:__PORT__:${PORT:-"$DEFAULT_PORT"}:g" "$PG_CONF"
-  sed -i "s:__PG_VERSION__:${PG_VERSION}:g" "$PG_CONF"
+
+  # Copy over configuration, make substitutions as needed.
+  # Useless use of cat, but makes the pipeline more readable.
+  # shellcheck disable=SC2002
+  cat "${PG_CONF}.template" \
+    | grep --fixed-strings --invert-match "__NOT_IF_PG_${PG_VERSION}__" \
+    | sed "s:__DATA_DIRECTORY__:${DATA_DIRECTORY}:g" \
+    | sed "s:__CONF_DIRECTORY__:${CONF_DIRECTORY}:g" \
+    | sed "s:__RUN_DIRECTORY__:${RUN_DIRECTORY:-"$DEFAULT_RUN_DIRECTORY"}:g" \
+    | sed "s:__PORT__:${PORT:-"$DEFAULT_PORT"}:g" \
+    | sed "s:__PG_VERSION__:${PG_VERSION}:g" \
+    > "${PG_CONF}"
 
   # Set up a self-signed SSL cert
   mkdir -p "${CONF_DIRECTORY}/ssl"

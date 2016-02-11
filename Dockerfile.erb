@@ -2,6 +2,7 @@ FROM quay.io/aptible/debian:wheezy
 
 # Define PostgreSQL version for shared scripts
 ENV PG_VERSION <%= ENV.fetch 'POSTGRES_VERSION' %>
+ENV POSTGIS_VERSION <%= ENV.fetch 'POSTGIS_VERSION' %>
 
 # cf. docker-library/postgres: explicitly create the user so uid and gid are consistent.
 RUN groupadd -r postgres && useradd -r -g postgres postgres
@@ -18,15 +19,26 @@ ENV LANG en_US.utf8
 # And now install Postgres from its own repos
 ADD templates/etc/apt /etc/apt
 
+
+# The package names below are anchored, becuase they're interpreted by apt as regexes
+# (because they contain "."), which can result in undesired packages being installed if
+# we don't update the PG and PostGIS versions properly, e.g.:
+# $ sudo apt-get install -y postgresql-9.5-postgis-2.1
+# Reading package lists... Done
+# Building dependency tree
+# Reading state information... Done
+# Note, selecting 'postgresql-9.5-postgis-2.1-scripts' for regex 'postgresql-9.5-postgis-2.1'
+# 0 upgraded, 0 newly installed, 0 to remove and 20 not upgraded.
+
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8 \
  && apt-get update \
  && apt-get -y install postgresql-common \
  && sed -ri 's/#(create_main_cluster) .*$/\1 = false/' /etc/postgresql-common/createcluster.conf \
  && apt-get -y install \
-    "postgresql-$PG_VERSION" \
-    "postgresql-client-$PG_VERSION" \
-    "postgresql-contrib-$PG_VERSION" \
-    "postgresql-$PG_VERSION-postgis-2.1" \
+    "^postgresql-${PG_VERSION}\$" \
+    "^postgresql-client-${PG_VERSION}\$" \
+    "^postgresql-contrib-${PG_VERSION}\$" \
+    "^postgresql-${PG_VERSION}-postgis-${POSTGIS_VERSION}\$" \
  && rm -rf /var/lib/apt/lists/*
 
 ENV CONF_DIRECTORY /etc/postgresql/$PG_VERSION
