@@ -41,6 +41,10 @@ RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys B97B0AFCAA1A47F044F
     "^postgresql-${PG_VERSION}-postgis-${POSTGIS_VERSION}\$" \
  && rm -rf /var/lib/apt/lists/*
 
+# If any, install extras
+ADD <%= ENV.fetch 'TAG' %>/install-extras.sh /install-extras.sh
+RUN /install-extras.sh
+
 ENV CONF_DIRECTORY /etc/postgresql/$PG_VERSION
 ADD templates/etc/postgresql/PG_VERSION $CONF_DIRECTORY
 
@@ -50,7 +54,7 @@ RUN mkdir $DATA_DIRECTORY && chown -R postgres $DATA_DIRECTORY
 ADD bin/run-database.sh /usr/bin/
 ADD bin/utilities.sh /usr/bin/
 
-ADD $PG_VERSION/test /tmp/test
+ADD <%= ENV.fetch 'TAG' %>/test /tmp/test
 ADD test /tmp/test
 RUN bats /tmp/test
 
