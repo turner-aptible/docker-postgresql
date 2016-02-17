@@ -10,6 +10,7 @@ env:
   matrix:
     - TAG=9.3
     - TAG=9.4
+    - TAG=9.4-contrib
     - TAG=9.5
 
 script:
