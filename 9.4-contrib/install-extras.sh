@@ -2,11 +2,14 @@
 set -o errexit
 set -o nounset
 
+# Install packaged extensions first
+apt-install "^postgresql-plpython-${PG_VERSION}$" "^postgresql-plpython3-${PG_VERSION}$"
+
+
+# Now, install source extensions
+
 # We'll need backports for libv8
 echo "deb http://httpredir.debian.org/debian wheezy-backports main" >> /etc/apt/sources.list
-
-SELECTIONS="/tmp/selections"
-dpkg --get-selections "*" > "$SELECTIONS"
 
 DEPS=(
   build-essential python-pip
