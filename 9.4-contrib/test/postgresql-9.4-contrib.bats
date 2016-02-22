@@ -20,3 +20,15 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
 @test "It should support pg_proctab" {
   sudo -u postgres psql --command "CREATE EXTENSION pg_proctab;"
 }
+
+@test "It should support plpythonu" {
+  sudo -u postgres psql --command "CREATE EXTENSION plpythonu;"
+}
+
+@test "It should support plpython2u" {
+  sudo -u postgres psql --command "CREATE EXTENSION plpython2u;"
+}
+
+@test "It should support plpython3u" {
+  sudo -u postgres psql --command "CREATE EXTENSION plpython3u;"
+}
