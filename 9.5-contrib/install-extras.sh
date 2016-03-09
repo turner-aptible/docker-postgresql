@@ -16,6 +16,7 @@ DEPS=(
   libpq-dev "^postgresql-server-dev-${PG_VERSION}$"
   freetds-dev
   libv8-3.14-dev
+  libmysqlclient-dev
 )
 
 apt-install "${DEPS[@]}"
@@ -23,3 +24,4 @@ pip install pgxnclient
 
 pgxn install "tds_fdw==1.0.7"
 pgxn install "plv8==1.4.4"
+USE_PGXS=1 pgxn install "mysql_fdw==2.1.2"

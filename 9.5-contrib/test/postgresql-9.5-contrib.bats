@@ -28,3 +28,7 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
 @test "It should support plpython3u" {
   sudo -u postgres psql --command "CREATE EXTENSION plpython3u;"
 }
+
+@test "It should support mysql_fdw" {
+  sudo -u postgres psql --command "CREATE EXTENSION mysql_fdw;"
+}
