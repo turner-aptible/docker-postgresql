@@ -45,7 +45,7 @@ function pg_init_data () {
 function pg_run_server () {
   # Run pg! Passthrough options.
   echo "Running PG with options:" "$@"
-  sudo -u postgres "/usr/lib/postgresql/$PG_VERSION/bin/postgres" -D "$DATA_DIRECTORY" -c "config_file=$PG_CONF" "$@"
+  exec gosu postgres "/usr/lib/postgresql/$PG_VERSION/bin/postgres" -D "$DATA_DIRECTORY" -c "config_file=$PG_CONF" "$@"
 }
 
 
@@ -53,11 +53,12 @@ if [[ "$1" == "--initialize" ]]; then
   pg_init_conf
   pg_init_data
 
-  sudo -u postgres "/usr/lib/postgresql/$PG_VERSION/bin/initdb" -D "$DATA_DIRECTORY"
-  sudo -u postgres /etc/init.d/postgresql start
-  sudo -u postgres psql --command "CREATE USER ${USERNAME:-aptible} WITH SUPERUSER PASSWORD '$PASSPHRASE'"
-  sudo -u postgres psql --command "CREATE DATABASE ${DATABASE:-db}"
-  sudo -u postgres /etc/init.d/postgresql stop
+  gosu postgres "/usr/lib/postgresql/$PG_VERSION/bin/initdb" -D "$DATA_DIRECTORY"
+  gosu postgres /etc/init.d/postgresql start
+  # The username is double-quoted because it's a name, but the password is single quoted, because it's a string.
+  gosu postgres psql --command "CREATE USER \"${USERNAME:-aptible}\" WITH SUPERUSER PASSWORD '$PASSPHRASE'"
+  gosu postgres psql --command "CREATE DATABASE ${DATABASE:-db}"
+  gosu postgres /etc/init.d/postgresql stop
 
 elif [[ "$1" == "--initialize-from" ]]; then
   [ -z "$2" ] && echo "docker run -it aptible/postgresql --initialize-from postgresql://..." && exit 1
@@ -67,7 +68,7 @@ elif [[ "$1" == "--initialize-from" ]]; then
   REPL_USER=${REPLICATION_USERNAME:-"repl_$(pwgen -s 10 | tr '[:upper:]' '[:lower:]')"}
   REPL_PASS=${REPLICATION_PASSPHRASE:-"$(pwgen -s 20)"}
 
-  # The username is double-quoted because it's a name, but the password is single quoted, because it's a string.
+  # See above regarding quoting
   psql "$2" --command "CREATE USER \"$REPL_USER\" REPLICATION LOGIN ENCRYPTED PASSWORD '$REPL_PASS'" > /dev/null
 
   pg_init_conf
@@ -77,7 +78,7 @@ elif [[ "$1" == "--initialize-from" ]]; then
   # TODO: Either way, we should respect whatever came in via the original URL..!
   parse_url "$2"
   # shellcheck disable=SC2154
-  sudo -u postgres pg_basebackup -D "$DATA_DIRECTORY" -R -d "$protocol$REPL_USER:$REPL_PASS@$host_and_port/$database?ssl=true"
+  gosu postgres pg_basebackup -D "$DATA_DIRECTORY" -R -d "$protocol$REPL_USER:$REPL_PASS@$host_and_port/$database?ssl=true"
 
 elif [[ "$1" == "--client" ]]; then
   [ -z "$2" ] && echo "docker run -it aptible/postgresql --client postgresql://..." && exit

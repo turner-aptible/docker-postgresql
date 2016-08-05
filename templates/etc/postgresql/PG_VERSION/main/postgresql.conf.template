@@ -56,8 +56,9 @@ checkpoint_segments = 8  # __NOT_IF_PG_9.5__
 log_line_prefix = '%t '
 log_timezone = 'UTC'
 client_min_messages = ERROR
-log_min_messages = FATAL
+log_min_messages = INFO
 log_min_error_statement = FATAL
+log_destination = 'stderr'
 
 #------------------------------------------------------------------------------
 # RUNTIME STATISTICS
