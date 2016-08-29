@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-@test "It should install PostgreSQL 9.5.2" {
+@test "It should install PostgreSQL 9.5.4" {
   run /usr/lib/postgresql/9.5/bin/postgres --version
-  [[ "$output" =~ "9.5.3"  ]]
+  [[ "$output" =~ "9.5.4"  ]]
 }
