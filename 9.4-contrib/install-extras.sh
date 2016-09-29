@@ -5,7 +5,6 @@ set -o nounset
 # Install packaged extensions first
 apt-install "^postgresql-plpython-${PG_VERSION}$" "^postgresql-plpython3-${PG_VERSION}$"
 
-
 # Now, install source extensions
 
 # We'll need backports for libv8
@@ -17,6 +16,7 @@ DEPS=(
   freetds-dev
   libv8-3.14-dev
   libmysqlclient-dev
+  python-dev
 )
 
 apt-install "${DEPS[@]}"
@@ -26,3 +26,4 @@ pgxn install "tds_fdw==1.0.7"
 pgxn install "plv8==1.4.4"
 pgxn install --testing "pg_proctab==0.0.5"
 USE_PGXS=1 pgxn install "mysql_fdw==2.1.2"
+pgxn install "multicorn==1.3.3"

@@ -36,3 +36,7 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
 @test "It should support mysql_fdw" {
   sudo -u postgres psql --command "CREATE EXTENSION mysql_fdw;"
 }
+
+@test "It should support multicorn" {
+  sudo -u postgres psql --command "CREATE EXTENSION multicorn;"
+}
