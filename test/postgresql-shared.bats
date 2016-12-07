@@ -29,6 +29,13 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
   su postgres -c "psql -l" | grep en_US.utf8
 }
 
+@test "It should support pg_stat_statements" {
+  run sudo -u postgres psql --command "CREATE EXTENSION pg_stat_statements;"
+  [ "$status" -eq "0" ]
+  run sudo -u postgres psql --command "SELECT * FROM pg_stat_statements LIMIT 1;"
+  [ "$status" -eq "0" ]
+}
+
 @test "It should support PostGIS" {
   run su postgres -c "psql --command \"CREATE EXTENSION postgis;\""
   [ "$status" -eq "0" ]
