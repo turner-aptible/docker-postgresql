@@ -21,7 +21,7 @@ The first command sets up a data container named `data` which will hold the conf
 
 ### SSL
 
-The PostgreSQL server is configured to enforce SSL for any TCP connection. It uses a self-signed certificate generated at startup time.
+The PostgreSQL server is configured to enforce SSL for any TCP connection. It uses a self-signed certificate generated at startup time, or a certificate / key pair found in SSL_CERTIFICATE and SSL_KEY.
 
 ## Available Versions (Tags)
 

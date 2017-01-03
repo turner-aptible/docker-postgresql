@@ -10,6 +10,31 @@ set -o pipefail
 DEFAULT_RUN_DIRECTORY="/var/run/postgresql"
 DEFAULT_PORT="5432"
 
+SSL_DIRECTORY="${CONF_DIRECTORY}/ssl"
+
+function pg_init_ssl () {
+  mkdir -p "$SSL_DIRECTORY"
+
+  local ssl_cert_file="${SSL_DIRECTORY}/server.crt"
+  local ssl_key_file="${SSL_DIRECTORY}/server.key"
+
+  if [ -n "$SSL_CERTIFICATE" ] && [ -n "$SSL_KEY" ]; then
+    echo "Certs present in environment - using them"
+    echo "$SSL_CERTIFICATE" > "$ssl_cert_file"
+    echo "$SSL_KEY" > "$ssl_key_file"
+  elif [ -f "$ssl_cert_file" ] && [ -f "$ssl_key_file" ]; then
+    echo "Certs present on filesystem - using them"
+  else
+    echo "No certs found - autogenerating"
+    SUBJ="/C=US/ST=New York/L=New York/O=Example/CN=PostgreSQL"
+    OPTS="req -nodes -new -x509 -sha256 -days 365000"
+    # shellcheck disable=2086
+    openssl $OPTS -subj "$SUBJ" -keyout "$ssl_key_file" -out "$ssl_cert_file" 2> /dev/null
+  fi
+
+  chown -R postgres:postgres "$SSL_DIRECTORY"
+  chmod 600 "$ssl_cert_file" "$ssl_key_file"
+}
 
 function pg_init_conf () {
   # Set up the PG config files
@@ -27,12 +52,9 @@ function pg_init_conf () {
     | sed "s:__PG_VERSION__:${PG_VERSION}:g" \
     > "${PG_CONF}"
 
-  # Set up a self-signed SSL cert
-  mkdir -p "${CONF_DIRECTORY}/ssl"
-  cd "${CONF_DIRECTORY}/ssl"
-  openssl req -new -newkey rsa:1024 -days 365000 -nodes -x509 -keyout server.key -subj "/CN=PostgreSQL" -out server.crt
-  chmod og-rwx server.key
-  chown -R postgres:postgres "${CONF_DIRECTORY}/ssl"
+  # Ensure we have a certificate, either from the environment, the filesystem,
+  # or just a random one.
+  pg_init_ssl
 }
 
 
@@ -43,7 +65,11 @@ function pg_init_data () {
 
 
 function pg_run_server () {
-  # Run pg! Passthrough options.
+  # Run pg! Remove potentially sensitive ENV and passthrough options.
+  unset SSL_CERTIFICATE
+  unset SSL_KEY
+  unset PASSPHPRASE
+
   echo "Running PG with options:" "$@"
   exec gosu postgres "/usr/lib/postgresql/$PG_VERSION/bin/postgres" -D "$DATA_DIRECTORY" -c "config_file=$PG_CONF" "$@"
 }

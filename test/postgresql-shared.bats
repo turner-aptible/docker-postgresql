@@ -3,6 +3,8 @@
 source "${BATS_TEST_DIRNAME}/test_helper.sh"
 
 @test "It should bring up a working PostgreSQL instance" {
+  initialize_and_start_pg
+
   su postgres -c "psql --command \"CREATE TABLE foo (i int);\""
   su postgres -c "psql --command \"INSERT INTO foo VALUES (1234);\""
   run su postgres -c "psql --command \"SELECT * FROM foo;\""
@@ -15,21 +17,25 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
 
 @test "It should protect against CVE-2014-0160" {
   skip
+  initialize_and_start_pg
   install-heartbleeder
   ./heartbleeder/heartbleeder -pg localhost
   uninstall-heartbleeder
 }
 
 @test "It should require a password" {
+  initialize_and_start_pg
   run psql -U postgres -l
   [ "$status" -ne "0" ]
 }
 
 @test "It should use UTF-8 for the default encoding" {
+  initialize_and_start_pg
   su postgres -c "psql -l" | grep en_US.utf8
 }
 
 @test "It should support pg_stat_statements" {
+  initialize_and_start_pg
   run sudo -u postgres psql --command "CREATE EXTENSION pg_stat_statements;"
   [ "$status" -eq "0" ]
   run sudo -u postgres psql --command "SELECT * FROM pg_stat_statements LIMIT 1;"
@@ -37,11 +43,13 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
 }
 
 @test "It should support PostGIS" {
+  initialize_and_start_pg
   run su postgres -c "psql --command \"CREATE EXTENSION postgis;\""
   [ "$status" -eq "0" ]
 }
 
 @test "It should dump to stdout by default" {
+  initialize_and_start_pg
   run /usr/bin/run-database.sh --dump postgresql://aptible:foobar@127.0.0.1:5432/db
   [ "$status" -eq "0" ]
   [ "${lines[1]}" = "-- PostgreSQL database dump" ]
@@ -49,6 +57,7 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
 }
 
 @test "It should restore from stdin by default" {
+  initialize_and_start_pg
   /usr/bin/run-database.sh --dump postgresql://aptible:foobar@127.0.0.1:5432/db > /tmp/restore-test
   echo "CREATE TABLE foo (i int);" >> /tmp/restore-test
   echo "INSERT INTO foo VALUES (1);" >> /tmp/restore-test
@@ -60,6 +69,7 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
 }
 
 @test "It should dump to /dump-output if /dump-output exists" {
+  initialize_and_start_pg
   touch /dump-output
   run /usr/bin/run-database.sh --dump postgresql://aptible:foobar@127.0.0.1:5432/db
   [ "$status" -eq "0" ]
@@ -71,6 +81,7 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
 }
 
 @test "It should restore from /restore-input if /restore-input exists" {
+  initialize_and_start_pg
   /usr/bin/run-database.sh --dump postgresql://aptible:foobar@127.0.0.1:5432/db > /restore-input
   echo "CREATE TABLE foo (i int);" >> /restore-input
   echo "INSERT INTO foo VALUES (1);" >> /restore-input
@@ -82,6 +93,7 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
 }
 
 @test "It should set up a follower with --initialize-from" {
+  initialize_and_start_pg
   FOLLOWER_DIRECTORY=/tmp/follower
   FOLLOWER_DATA="${FOLLOWER_DIRECTORY}/data"
   FOLLOWER_CONF="${FOLLOWER_DIRECTORY}/conf"
