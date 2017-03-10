@@ -2,9 +2,9 @@
 
 source "${BATS_TEST_DIRNAME}/test_helper.sh"
 
-@test "It should install PostgreSQL 9.5.5" {
+@test "It should install PostgreSQL 9.5.6" {
   run /usr/lib/postgresql/9.5/bin/postgres --version
-  [[ "$output" =~ "9.5.5"  ]]
+  [[ "$output" =~ "9.5.6"  ]]
 }
 
 @test "It should support PLV8" {
