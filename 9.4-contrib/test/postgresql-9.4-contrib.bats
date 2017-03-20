@@ -2,9 +2,9 @@
 
 source "${BATS_TEST_DIRNAME}/test_helper.sh"
 
-@test "It should install PostgreSQL 9.4.10" {
+@test "It should install PostgreSQL 9.4.11" {
   run /usr/lib/postgresql/9.4/bin/postgres --version
-  [[ "$output" =~ "9.4.10"  ]]
+  [[ "$output" =~ "9.4.11"  ]]
 }
 
 @test "It should support PLV8" {
@@ -47,4 +47,14 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
 @test "It should support multicorn" {
   initialize_and_start_pg
   sudo -u postgres psql --command "CREATE EXTENSION multicorn;"
+}
+
+@test "It should support plperl" {
+  initialize_and_start_pg
+  sudo -u postgres psql --command "CREATE LANGUAGE plperl;"
+}
+
+@test "It should support plperlu" {
+  initialize_and_start_pg
+  sudo -u postgres psql --command "CREATE LANGUAGE plperlu;"
 }
