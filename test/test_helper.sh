@@ -9,8 +9,7 @@ setup() {
 }
 
 teardown() {
-  /etc/init.d/postgresql stop || true
-  while /etc/init.d/postgresql status; do sleep 0.1; done
+  stop_pg
 
   rm -rf "$DATA_DIRECTORY"
   export DATA_DIRECTORY="$OLD_DATA_DIRECTORY"
@@ -25,12 +24,26 @@ teardown() {
 
 initialize_and_start_pg() {
   PASSPHRASE=foobar /usr/bin/run-database.sh --initialize
-  /usr/bin/run-database.sh > /tmp/postgres.log 2>&1 &
-  wait_for_pg
+  start_pg
 }
 
 wait_for_pg() {
   until /etc/init.d/postgresql status; do sleep 0.1; done
+}
+
+stop_pg() {
+  /etc/init.d/postgresql stop || true
+  while /etc/init.d/postgresql status; do sleep 0.1; done
+}
+
+start_pg() {
+  /usr/bin/run-database.sh > /tmp/postgres.log 2>&1 &
+  wait_for_pg
+}
+
+restart_pg() {
+  stop_pg
+  start_pg
 }
 
 install-heartbleeder() {
