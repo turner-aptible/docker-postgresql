@@ -52,3 +52,11 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
   initialize_and_start_pg
   sudo -u postgres psql --command "CREATE LANGUAGE plperlu;"
 }
+
+@test "It should support pglogical" {
+  dpkg-query -l postgresql-${PG_VERSION}-pglogical
+  initialize_and_start_pg
+  sudo -u postgres psql --command "ALTER SYSTEM SET shared_preload_libraries='pglogical';"
+  restart_pg
+  sudo -u postgres psql --command "CREATE EXTENSION pglogical;"
+}
