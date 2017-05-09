@@ -28,6 +28,11 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
   sudo -u postgres psql --command "CREATE EXTENSION plpython3u;"
 }
 
+@test "It should support mysql_fdw" {
+  initialize_and_start_pg
+  sudo -u postgres psql --command "CREATE EXTENSION mysql_fdw;"
+}
+
 @test "It should support multicorn" {
   initialize_and_start_pg
   sudo -u postgres psql --command "CREATE EXTENSION multicorn;"
