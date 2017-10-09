@@ -8,9 +8,6 @@ apt-install "^postgresql-plpython-${PG_VERSION}$" "^postgresql-plpython3-${PG_VE
 
 # Now, install source extensions
 
-# We'll need backports for libv8
-echo "deb http://httpredir.debian.org/debian wheezy-backports main" >> /etc/apt/sources.list
-
 DEPS=(
   build-essential python-pip
   libpq-dev "^postgresql-server-dev-${PG_VERSION}$"
