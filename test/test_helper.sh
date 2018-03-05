@@ -20,6 +20,9 @@ teardown() {
 
   rm -rf "$WORK_DIR"
   unset WORK_DIR
+
+  # Be safe and delete those should a test leave them behind.
+  rm -f "/restore-input" "/dump-output"
 }
 
 initialize_and_start_pg() {

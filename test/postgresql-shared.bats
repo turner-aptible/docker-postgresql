@@ -67,47 +67,55 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
 }
 
 @test "It should dump to stdout by default" {
+  url="postgresql://aptible:foobar@127.0.0.1:5432/db"
+
   initialize_and_start_pg
-  run /usr/bin/run-database.sh --dump postgresql://aptible:foobar@127.0.0.1:5432/db
-  [ "$status" -eq "0" ]
-  [ "${lines[1]}" = "-- PostgreSQL database dump" ]
-  [ "${lines[-2]}" = "-- PostgreSQL database dump complete" ]
+  run-database.sh --dump "$url" \
+    | grep "PostgreSQL database dump complete"
 }
 
 @test "It should restore from stdin by default" {
+  url="postgresql://aptible:foobar@127.0.0.1:5432/db"
+
   initialize_and_start_pg
-  /usr/bin/run-database.sh --dump postgresql://aptible:foobar@127.0.0.1:5432/db > /tmp/restore-test
-  echo "CREATE TABLE foo (i int);" >> /tmp/restore-test
-  echo "INSERT INTO foo VALUES (1);" >> /tmp/restore-test
-  run /usr/bin/run-database.sh --restore postgresql://aptible:foobar@127.0.0.1:5432/db < /tmp/restore-test
+  run-database.sh --client "$url" -c "CREATE TABLE foos (i TEXT);"
+  run-database.sh --client "$url" -c "INSERT INTO foos VALUES('canary');"
+  run-database.sh --dump "$url" > /tmp/restore-test
+
+  run-database.sh --client "$url" -c "DROP TABLE foos;"
+
+  run /usr/bin/run-database.sh --restore "$url" < /tmp/restore-test
   rm /tmp/restore-test
-  [ "$status" -eq "0" ]
-  [ "${lines[-2]}" = "CREATE TABLE" ]
-  [ "${lines[-1]}" = "INSERT 0 1" ]
+
+  run-database.sh --client "$url" -c "SELECT * FROM foos;" | grep 'canary'
 }
 
 @test "It should dump to /dump-output if /dump-output exists" {
+  out="/dump-output"
   initialize_and_start_pg
-  touch /dump-output
-  run /usr/bin/run-database.sh --dump postgresql://aptible:foobar@127.0.0.1:5432/db
-  [ "$status" -eq "0" ]
-  [ "$output" = "" ]
-  run cat dump-output
-  rm /dump-output
-  [ "${lines[1]}" = "-- PostgreSQL database dump" ]
-  [ "${lines[-2]}" = "-- PostgreSQL database dump complete" ]
+
+  touch "$out"
+  /usr/bin/run-database.sh --dump postgresql://aptible:foobar@127.0.0.1:5432/db
+
+  grep "PostgreSQL database dump complete" "$out"
+  rm "$out"
 }
 
 @test "It should restore from /restore-input if /restore-input exists" {
+  in="/restore-input"
+  url="postgresql://aptible:foobar@127.0.0.1:5432/db"
+
   initialize_and_start_pg
-  /usr/bin/run-database.sh --dump postgresql://aptible:foobar@127.0.0.1:5432/db > /restore-input
-  echo "CREATE TABLE foo (i int);" >> /restore-input
-  echo "INSERT INTO foo VALUES (1);" >> /restore-input
-  run /usr/bin/run-database.sh --restore postgresql://aptible:foobar@127.0.0.1:5432/db
-  rm /restore-input
-  [ "$status" -eq "0" ]
-  [ "${lines[-2]}" = "CREATE TABLE" ]
-  [ "${lines[-1]}" = "INSERT 0 1" ]
+  run-database.sh --client "$url" -c "CREATE TABLE foos (i TEXT);"
+  run-database.sh --client "$url" -c "INSERT INTO foos VALUES('canary');"
+  run-database.sh --dump "$url" > "$in"
+
+  run-database.sh --client "$url" -c "DROP TABLE foos;"
+
+  run /usr/bin/run-database.sh --restore "$url"
+  rm "$in"
+
+  run-database.sh --client "$url" -c "SELECT * FROM foos;" | grep 'canary'
 }
 
 @test "It should set up a follower with --initialize-from" {
