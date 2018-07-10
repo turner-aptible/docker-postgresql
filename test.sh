@@ -4,6 +4,7 @@ set -o nounset
 
 IMG="$REGISTRY/$REPOSITORY:$TAG"
 
+./test-ssl.sh "$IMG"
 ./test-restart.sh "$IMG"
 ./test-replication.sh "$IMG"
 

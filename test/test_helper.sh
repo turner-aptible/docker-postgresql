@@ -31,7 +31,14 @@ initialize_and_start_pg() {
 }
 
 wait_for_pg() {
-  until /etc/init.d/postgresql status; do sleep 0.1; done
+  for _ in $(seq 1 60); do
+    if /etc/init.d/postgresql status; then
+      return 0
+    fi
+    sleep 1
+  done
+  echo "Database timed out"
+  return 1
 }
 
 stop_pg() {
