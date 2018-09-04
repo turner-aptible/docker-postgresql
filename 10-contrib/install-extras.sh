@@ -10,7 +10,8 @@ apt-key adv --keyserver ha.pool.sks-keyservers.net --recv-keys 5D941908AA7A6805
 
 # Install packaged extensions first
 apt-install "^postgresql-plpython-${PG_VERSION}$" "^postgresql-plpython3-${PG_VERSION}$" \
-  "^postgresql-plperl-${PG_VERSION}$" "^postgresql-${PG_VERSION}-pglogical$" "^postgresql-${PG_VERSION}-pgaudit$"
+  "^postgresql-plperl-${PG_VERSION}$" "^postgresql-${PG_VERSION}-pglogical$" \
+  "^postgresql-${PG_VERSION}-pgaudit$" "^postgresql-${PG_VERSION}-wal2json$"
 
 # Now, install source extensions
 
