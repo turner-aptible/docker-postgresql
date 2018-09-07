@@ -2,8 +2,8 @@
 
 source "${BATS_TEST_DIRNAME}/test_helper.sh"
 
-@test "It should install PostgreSQL 10.4" {
-  /usr/lib/postgresql/10/bin/postgres --version | grep "10.4"
+@test "It should install PostgreSQL 10.5" {
+  /usr/lib/postgresql/10/bin/postgres --version | grep "10.5"
 }
 
 @test "It should support PLV8" {
@@ -73,4 +73,12 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
   sudo -u postgres psql --command "ALTER SYSTEM SET shared_preload_libraries='pgaudit';"
   restart_pg
   sudo -u postgres psql --command "CREATE EXTENSION pgaudit;"
+}
+
+@test "It should support wal2json" {
+  initialize_and_start_pg
+  sudo -u postgres psql --command "ALTER SYSTEM SET wal_level='logical';"
+  restart_pg
+  sudo -u postgres psql --command "SELECT 'init' FROM pg_create_logical_replication_slot('test_slot', 'wal2json');"
+  sudo -u postgres psql --command "SELECT 'stop' FROM pg_drop_replication_slot('test_slot');"
 }
