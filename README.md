@@ -25,12 +25,13 @@ The PostgreSQL server is configured to enforce SSL for any TCP connection. It us
 
 ## Available Versions (Tags)
 
-* `latest`: Currently PostgreSQL 10
+* `latest`: Currently PostgreSQL 11
+* `11`: PostgreSQL 11
 * `10`: PostgreSQL 10
 * `9.6`: PostgreSQL 9.6
 * `9.5`: PostgreSQL 9.5
 * `9.4`: PostgreSQL 9.4
-* `9.3`: PostgreSQL 9.3
+* `9.3`: PostgreSQL 9.3 (EOL 2018-11-08)
 
 ## Tests
 
