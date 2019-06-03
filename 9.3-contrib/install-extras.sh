@@ -4,7 +4,7 @@ set -o nounset
 
 # Install packaged extensions first
 apt-install "^postgresql-plpython-${PG_VERSION}$" "^postgresql-plpython3-${PG_VERSION}$" \
-  "^postgresql-plperl-${PG_VERSION}$"
+  "^postgresql-plperl-${PG_VERSION}$" "^postgresql-${PG_VERSION}-repack"
 
 # Now, install source extensions
 
