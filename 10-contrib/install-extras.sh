@@ -25,7 +25,7 @@ DEPS=(
 )
 
 apt-install "${DEPS[@]}"
-pip install pgxnclient
+pip install 'pgxnclient<1.3'
 
 pgxn install "plv8==1.4.4"
 pgxn install "multicorn==1.3.5"
