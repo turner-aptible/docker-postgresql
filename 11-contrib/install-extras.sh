@@ -25,7 +25,7 @@ DEPS=(
 )
 
 apt-install "${DEPS[@]}"
-pip install pgxnclient
+pip install 'pgxnclient<1.3'
 
 # PLV8 v2.3.7 required for PG11
 # https://github.com/plv8/plv8/blob/r3.0alpha/Changes#L15-L16

@@ -52,7 +52,7 @@ RUN apt-key add /tmp/GPGkeys/postgresql-debian.key \
  && apt-get update \
  && apt-get -y install postgresql-common \
  && sed -ri 's/#(create_main_cluster) .*$/\1 = false/' /etc/postgresql-common/createcluster.conf \
- && apt-get -y install \
+ && apt-get -y install python \
     "^postgresql-${PG_VERSION}\$" \
     "^postgresql-client-${PG_VERSION}\$" \
     "^postgresql-contrib-${PG_VERSION}\$" \
