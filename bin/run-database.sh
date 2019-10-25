@@ -122,7 +122,9 @@ elif [[ "$1" == "--initialize-from" ]]; then
     -d "$protocol$REPL_USER:$REPL_PASS@$host_and_port/$database?ssl=true"
   )
 
-  if dpkg --compare-versions "$PG_VERSION" ge '9.5'; then
+  # Allow for optional bypassing of replication slots to support
+  # legacy replicas.
+  if [[ -z "${NO_SLOTS}" ]] && dpkg --compare-versions "$PG_VERSION" ge '9.6'; then
     REPL_SLOT="$(pwgen -s 20 | tr '[:upper:]' '[:lower:]')_$(date +%s)"
     psql "$2" --command "SELECT * FROM pg_create_physical_replication_slot('$REPL_SLOT');" > /dev/null
 
