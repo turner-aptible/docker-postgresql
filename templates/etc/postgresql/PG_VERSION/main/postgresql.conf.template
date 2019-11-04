@@ -43,7 +43,7 @@ max_replication_slots = 10 # __NOT_IF_PG_9.5__  __NOT_IF_PG_9.4__ __NOT_IF_PG_9.
 
 # Checkpointing configuration is required on PG < 9.5. However, 9.5 has smarter
 # defaults, so we don't have it there.
-checkpoint_segments = 8  # __NOT_IF_PG_9.5__  __NOT_IF_PG_9.6__ __NOT_IF_PG_10__ __NOT_IF_PG_11__
+checkpoint_segments = 8  # __NOT_IF_PG_9.5__  __NOT_IF_PG_9.6__ __NOT_IF_PG_10__ __NOT_IF_PG_11__ __NOT_IF_PG_12__
 
 #------------------------------------------------------------------------------
 # QUERY TUNING
