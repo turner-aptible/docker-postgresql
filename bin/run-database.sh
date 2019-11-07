@@ -137,6 +137,13 @@ elif [[ "$1" == "--initialize-from" ]]; then
 
   gosu postgres pg_basebackup "${basebackup_options[@]}"
 
+  # Create the trigger to allow PG < 12 replicas to be promoted
+  # (PG 12 natively allows `SELECT pg_promote();`)
+  if dpkg --compare-versions "$PG_VERSION" lt '12'; then
+    TRIGGER="trigger_file = '${DATA_DIRECTORY}/pgsql.trigger'"
+    echo "${TRIGGER}" >> "${DATA_DIRECTORY}/recovery.conf"
+  fi
+
 elif [[ "$1" == "--initialize-backup" ]]; then
   # Remove recovery.conf if present to not start following the master.
   rm -f "${DATA_DIRECTORY}/recovery.conf"
