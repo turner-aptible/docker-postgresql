@@ -36,7 +36,7 @@ shared_buffers = 128MB
 #------------------------------------------------------------------------------
 
 wal_level = hot_standby
-max_wal_senders = 3
+max_wal_senders = 10
 wal_keep_segments = 8
 hot_standby = on
 max_replication_slots = 10 # __NOT_IF_PG_9.5__  __NOT_IF_PG_9.4__ __NOT_IF_PG_9.3__
