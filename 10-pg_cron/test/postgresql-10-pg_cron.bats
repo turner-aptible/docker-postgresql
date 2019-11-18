@@ -2,8 +2,8 @@
 
 source "${BATS_TEST_DIRNAME}/test_helper.sh"
 
-@test "It should install PostgreSQL 10.10" {
-  /usr/lib/postgresql/10/bin/postgres --version | grep "10.10"
+@test "It should install PostgreSQL 10.11" {
+  /usr/lib/postgresql/10/bin/postgres --version | grep "10.11"
 }
 
 @test "It should support pg_cron" {

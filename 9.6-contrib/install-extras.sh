@@ -27,7 +27,7 @@ apt-install "${DEPS[@]}"
 pip install 'pgxnclient<1.3'
 
 pgxn install "plv8==1.4.4"
-pgxn install "multicorn==1.3.3"
+PYTHON_OVERRIDE=python pgxn install "multicorn==1.3.3"
 pgxn install safeupdate
 
 # Install extensions from source (expects tarball URL as argument)
