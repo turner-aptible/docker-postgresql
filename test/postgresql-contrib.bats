@@ -143,3 +143,11 @@ versions-only() {
   sudo -u postgres psql --command "CREATE EXTENSION pg_repack;"
   sudo -u postgres pg_repack --dry-run
 }
+
+@test "It should support pgagent" {
+  contrib-only
+  versions-only ge 9.4
+
+  initialize_and_start_pg
+  sudo -u postgres psql --command "CREATE EXTENSION pgagent;"
+}
