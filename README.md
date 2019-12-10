@@ -34,6 +34,31 @@ The PostgreSQL server is configured to enforce SSL for any TCP connection. It us
 * `9.4`: PostgreSQL 9.4 (EOL 2020-02-13)
 * `9.3`: PostgreSQL 9.3 (EOL 2018-11-08)
 
+## Available Extensions
+
+In the `--contrib` images, the following extensions are available.
+
+| Extension | Avaiable in versions|
+|-----------|---------------------|
+| plpythonu | 9.3 - 11 |
+| plpython2u | 9.3 - 11 |
+| plpython3u | 9.3 - 11 |
+| plperl | 9.3 - 11 |
+| plperlu | 9.3 - 11 |
+| mysql_fdw | 9.3 - 11 |
+| PLV8 |  9.3 - 11|
+| multicorn | 9.3 - 10 |
+| wal2json |  9.4 - 11 |
+| pg-safeupdate | 9.4 - 11 |
+| pglogical | 9.4 - 11 |
+| pg_repack | 9.4 - 11 |
+| pgagent | 9.4 - 11 |
+| pggent|  9.4 - 11 |
+| pgaudit |  9.5 - 11 |
+| pgcron | 10 |
+
+Aptible Support can update your Database to use the `--contrib` image.
+
 ## Tests
 
 Tests are run as part of the `Dockerfile` build. To execute them separately within a container, run:
