@@ -16,7 +16,7 @@ versions-only() {
 
 @test "It should support PLV8" {
   contrib-only
-  versions-only ne 11
+  versions-only lt 11
   
   initialize_and_start_pg
   sudo -u postgres psql --command "CREATE EXTENSION plv8;"
@@ -27,6 +27,7 @@ versions-only() {
 
 @test "It should support plpythonu" {
   contrib-only
+  versions-only ne 12
 
   initialize_and_start_pg
   sudo -u postgres psql --command "CREATE EXTENSION plpythonu;"
@@ -34,6 +35,7 @@ versions-only() {
 
 @test "It should support plpython2u" {
   contrib-only
+  versions-only ne 12
 
   initialize_and_start_pg
   sudo -u postgres psql --command "CREATE EXTENSION plpython2u;"
@@ -41,6 +43,7 @@ versions-only() {
 
 @test "It should support plpython3u" {
   contrib-only
+  versions-only ne 12
 
   initialize_and_start_pg
   sudo -u postgres psql --command "CREATE EXTENSION plpython3u;"
@@ -63,6 +66,7 @@ versions-only() {
 
 @test "It should support mysql_fdw" {
   contrib-only
+  versions-only ne 12
 
   initialize_and_start_pg
   sudo -u postgres psql --command "CREATE EXTENSION mysql_fdw;"
@@ -70,8 +74,7 @@ versions-only() {
 
 @test "It should support multicorn" {
   contrib-only
-  versions-only ne 11
-
+  versions-only lt 11
 
   initialize_and_start_pg
   sudo -u postgres psql --command "CREATE EXTENSION multicorn;"
@@ -80,6 +83,7 @@ versions-only() {
 @test "It should support wal2json" {
   contrib-only
   versions-only ge 9.4
+  versions-only ne 12
 
   initialize_and_start_pg
   sudo -u postgres psql --command "ALTER SYSTEM SET wal_level='logical';"
@@ -92,6 +96,7 @@ versions-only() {
 @test "It should support pgaudit" {
   contrib-only
   versions-only ge 9.5
+  versions-only ne 12
 
   dpkg-query -l "postgresql-${PG_VERSION}-pgaudit"
   initialize_and_start_pg
@@ -103,8 +108,7 @@ versions-only() {
 @test "It should support pg-safeupdate" {
   contrib-only
   versions-only ge 9.4
-  versions-only ne 11
-
+  versions-only lt 11
 
   initialize_and_start_pg
   sudo -u postgres psql --command "ALTER SYSTEM SET shared_preload_libraries='safeupdate';"
@@ -119,6 +123,7 @@ versions-only() {
 @test "It should support pglogical" {
   contrib-only
   versions-only ge 9.4
+  versions-only ne 12
 
   dpkg-query -l postgresql-${PG_VERSION}-pglogical
   initialize_and_start_pg
@@ -134,6 +139,7 @@ versions-only() {
 @test "It should support pg_repack" {
   contrib-only
   versions-only ge 9.4
+  versions-only ne 12
 
   dpkg-query -l postgresql-${PG_VERSION}-repack
 
@@ -147,6 +153,7 @@ versions-only() {
 @test "It should support pgagent" {
   contrib-only
   versions-only ge 9.4
+  versions-only ne 12
 
   initialize_and_start_pg
   sudo -u postgres psql --command "CREATE EXTENSION pgagent;"
