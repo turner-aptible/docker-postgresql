@@ -43,8 +43,8 @@ In the `--contrib` images, the following extensions are available.
 | plpythonu | 9.3 - 11 |
 | plpython2u | 9.3 - 11 |
 | plpython3u | 9.3 - 11 |
-| plperl | 9.3 - 11 |
-| plperlu | 9.3 - 11 |
+| plperl | 9.3 - 12 |
+| plperlu | 9.3 - 12 |
 | mysql_fdw | 9.3 - 11 |
 | PLV8 |  9.3 - 11|
 | multicorn | 9.3 - 10 |
