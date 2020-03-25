@@ -123,7 +123,6 @@ versions-only() {
 @test "It should support pglogical" {
   contrib-only
   versions-only ge 9.4
-  versions-only ne 12
 
   dpkg-query -l postgresql-${PG_VERSION}-pglogical
   initialize_and_start_pg

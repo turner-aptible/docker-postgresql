@@ -50,7 +50,7 @@ In the `--contrib` images, the following extensions are available.
 | multicorn | 9.3 - 10 |
 | wal2json |  9.4 - 11 |
 | pg-safeupdate | 9.4 - 11 |
-| pglogical | 9.4 - 11 |
+| pglogical | 9.4 - 12 |
 | pg_repack | 9.4 - 11 |
 | pgagent | 9.4 - 11 |
 | pggent|  9.4 - 11 |
