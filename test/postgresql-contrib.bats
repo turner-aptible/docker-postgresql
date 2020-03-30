@@ -43,7 +43,6 @@ versions-only() {
 
 @test "It should support plpython3u" {
   contrib-only
-  versions-only ne 12
 
   initialize_and_start_pg
   sudo -u postgres psql --command "CREATE EXTENSION plpython3u;"
@@ -83,7 +82,6 @@ versions-only() {
 @test "It should support wal2json" {
   contrib-only
   versions-only ge 9.4
-  versions-only ne 12
 
   initialize_and_start_pg
   sudo -u postgres psql --command "ALTER SYSTEM SET wal_level='logical';"
@@ -152,7 +150,6 @@ versions-only() {
 @test "It should support pgagent" {
   contrib-only
   versions-only ge 9.4
-  versions-only ne 12
 
   initialize_and_start_pg
   sudo -u postgres psql --command "CREATE EXTENSION pgagent;"

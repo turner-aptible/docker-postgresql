@@ -42,17 +42,17 @@ In the `--contrib` images, the following extensions are available.
 |-----------|---------------------|
 | plpythonu | 9.3 - 11 |
 | plpython2u | 9.3 - 11 |
-| plpython3u | 9.3 - 11 |
+| plpython3u | 9.3 - 12 |
 | plperl | 9.3 - 12 |
 | plperlu | 9.3 - 12 |
 | mysql_fdw | 9.3 - 11 |
 | PLV8 |  9.3 - 11|
 | multicorn | 9.3 - 10 |
-| wal2json |  9.4 - 11 |
+| wal2json |  9.4 - 12 |
 | pg-safeupdate | 9.4 - 11 |
 | pglogical | 9.4 - 12 |
 | pg_repack | 9.4 - 11 |
-| pgagent | 9.4 - 11 |
+| pgagent | 9.4 - 12 |
 | pggent|  9.4 - 11 |
 | pgaudit |  9.5 - 11 |
 | pgcron | 10 |
