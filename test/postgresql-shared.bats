@@ -213,3 +213,12 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
   kill $(cat "$FOLLOWER_RUN/$PG_VERSION-main.pid")
   rm -rf "$FOLLOWER_DIRECTORY"
 }
+
+@test "It prints the persistent configuration changes on boot." {
+  initialize_and_start_pg
+  echo "log_min_duration_statement = 12345" >> "${DATA_DIRECTORY}/postgresql.auto.conf"
+
+  restart_pg
+  grep "persistent configuration changes" /tmp/postgres.log
+  grep "log_min_duration_statement" /tmp/postgres.log
+}

@@ -174,6 +174,10 @@ elif [[ "$1" == "--readonly" ]]; then
   pg_run_server --default_transaction_read_only=on
 
 else
+  echo "----The following persistent configuration changes are present----"
+  egrep -v "^#" "${DATA_DIRECTORY}/postgresql.auto.conf" || true
+  echo "--------------End persistent configuration changes----------------"
+
   pg_init_conf
   pg_run_server
 
