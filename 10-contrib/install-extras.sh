@@ -58,3 +58,7 @@ install_extension_from_source() {
 install_extension_from_source \
   https://github.com/EnterpriseDB/mysql_fdw/archive/REL-2_3_0.tar.gz \
   a2dbd00bb4929ecacbf9c21bde762ad5afbe7af7
+
+install_extension_from_source \
+  https://github.com/pgpartman/pg_partman/archive/v4.3.1.tar.gz \
+  22eb8069800614a4601a4ce76519a3d9a41c3311
