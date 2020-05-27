@@ -94,7 +94,6 @@ versions-only() {
 @test "It should support pgaudit" {
   contrib-only
   versions-only ge 9.5
-  versions-only ne 12
 
   dpkg-query -l "postgresql-${PG_VERSION}-pgaudit"
   initialize_and_start_pg
