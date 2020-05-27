@@ -53,7 +53,7 @@ In the `--contrib` images, the following extensions are available.
 | pglogical | 9.4 - 12 |
 | pg_repack | 9.4 - 11 |
 | pgagent | 9.4 - 12 |
-| pgaent|  9.4 - 11 |
+| pgagent|  9.4 - 11 |
 | pgaudit |  9.5 - 12 |
 | pgcron | 10 |
 
