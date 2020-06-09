@@ -117,21 +117,6 @@ versions-only() {
   [ "${lines[0]}" = "ERROR:  DELETE requires a WHERE clause" ]
 }
 
-@test "It should support pglogical" {
-  contrib-only
-  versions-only ge 9.4
-
-  dpkg-query -l postgresql-${PG_VERSION}-pglogical
-  initialize_and_start_pg
-  sudo -u postgres psql --command "ALTER SYSTEM SET shared_preload_libraries='pglogical';"
-  restart_pg
-  echo "$PG_VERSION"
-  if dpkg --compare-versions "$PG_VERSION" eq 9.4; then
-    sudo -u postgres psql --command "CREATE EXTENSION pglogical_origin;"
-  fi
-  sudo -u postgres psql --command "CREATE EXTENSION pglogical;"
-}
-
 @test "It should support pg_repack" {
   contrib-only
   versions-only ge 9.4
