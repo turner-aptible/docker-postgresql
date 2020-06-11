@@ -224,6 +224,8 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
 }
 
 @test "It should support pglogical" {
+  versions-only ge 9.4
+  
   dpkg-query -l postgresql-${PG_VERSION}-pglogical
   initialize_and_start_pg
   sudo -u postgres psql --command "ALTER SYSTEM SET shared_preload_libraries='pglogical';"
