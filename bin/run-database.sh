@@ -15,6 +15,7 @@ SSL_DIRECTORY="${CONF_DIRECTORY}/ssl"
 PG_CONF="${CONF_DIRECTORY}/main/postgresql.conf"
 PG_AUTOTUNE_CONF="${CONF_DIRECTORY}/main/postgresql.autotune.conf"
 PG_HBA="${CONF_DIRECTORY}/main/pg_hba.conf"
+DB="${DATABASE:-db}"
 
 function pg_init_ssl () {
   mkdir -p "$SSL_DIRECTORY"
@@ -43,6 +44,12 @@ function pg_init_ssl () {
 function pg_init_conf () {
   # Set up the PG config files
 
+  if dpkg --compare-versions "$PG_VERSION" lt '9.4'; then
+    WAL_LEVEL=hot_standby
+  else
+    WAL_LEVEL=logical
+  fi
+
   # Copy over configuration, make substitutions as needed.
   # Useless use of cat, but makes the pipeline more readable.
   # shellcheck disable=SC2002
@@ -55,6 +62,7 @@ function pg_init_conf () {
     | sed "s:__PG_VERSION__:${PG_VERSION}:g" \
     | sed "s:__PRELOAD_LIB__:${PRELOAD_LIB}:g"\
     | sed "s:__PG_AUTOTUNE_CONF__:${PG_AUTOTUNE_CONF}:g"\
+    | sed "s:__WAL_LEVEL__:${WAL_LEVEL}:g"\
     > "${PG_CONF}"
 
   cat "${PG_HBA}.template"\
@@ -87,7 +95,7 @@ function pg_run_server () {
 }
 
 
-if [[ "$1" == "--initialize" ]]; then
+function initialize() {
   pg_init_conf
   pg_init_data
 
@@ -95,8 +103,13 @@ if [[ "$1" == "--initialize" ]]; then
   gosu postgres /etc/init.d/postgresql start
   # The username is double-quoted because it's a name, but the password is single quoted, because it's a string.
   gosu postgres psql --command "CREATE USER \"${USERNAME:-aptible}\" WITH SUPERUSER PASSWORD '$PASSPHRASE'"
-  gosu postgres psql --command "CREATE DATABASE ${DATABASE:-db}"
+  gosu postgres psql --command "CREATE DATABASE ${DB}"
   gosu postgres /etc/init.d/postgresql stop
+}
+
+
+if [[ "$1" == "--initialize" ]]; then
+  initialize
 
 elif [[ "$1" == "--initialize-from" ]]; then
   [ -z "$2" ] && echo "docker run -it aptible/postgresql --initialize-from postgresql://..." && exit 1
@@ -143,6 +156,55 @@ elif [[ "$1" == "--initialize-from" ]]; then
     TRIGGER="trigger_file = '${DATA_DIRECTORY}/pgsql.trigger'"
     echo "${TRIGGER}" >> "${DATA_DIRECTORY}/recovery.conf"
   fi
+
+elif [[ "$1" == "--initialize-from-logical" ]]; then
+  [ -z "$2" ] && echo "docker run -it aptible/postgresql --initialize-from-logical postgresql://..." && exit 1
+
+  master_url="$2"
+
+  psql "$master_url" --tuples-only --command "SELECT setting FROM pg_settings WHERE name = 'wal_level'" \
+    | grep 'logical' > /dev/null \
+    || { echo "Error: Master database's \"wal_level\" must be \"logical\"" && CONFIG_ERROR=1; }
+  psql "$master_url" --tuples-only --command "SELECT setting FROM pg_settings WHERE name = 'shared_preload_libraries'" \
+    | grep 'pglogical' > /dev/null \
+    || { echo "Error: \"pglogical\" must be in master database's \"shared_preload_libraries\"" && CONFIG_ERROR=1; }
+
+  if [[ -n "$CONFIG_ERROR" ]]; then
+    exit "$CONFIG_ERROR"
+  fi
+
+  initialize
+
+  parse_url "$master_url"
+
+  PUBLISHER_DSN="host=${host} port=${port} user=${user} password=${password} dbname=${database}"
+  SUBSCRIBER_DSN="host=127.0.0.1 port=${PORT:-"$DEFAULT_PORT"} user=${USERNAME:-aptible} password=${PASSPHRASE} dbname=${DB}"
+  REPLICATION_SET_NAME="aptible_replication_set"
+
+  gosu postgres /etc/init.d/postgresql start
+  pg_dump --schema-only --schema public "$master_url" | gosu postgres psql --dbname "${DB}" > /dev/null
+
+  if dpkg --compare-versions "$PG_VERSION" eq '9.4'; then
+    psql "$master_url" --command "CREATE EXTENSION IF NOT EXISTS pglogical_origin"
+    gosu postgres psql --dbname "${DB}" --command "CREATE EXTENSION IF NOT EXISTS pglogical_origin"
+  fi
+
+  psql "$master_url" --command "CREATE EXTENSION IF NOT EXISTS pglogical"
+  gosu postgres psql --dbname "${DB}" --command "CREATE EXTENSION IF NOT EXISTS pglogical"
+
+  # There can only be one node per database
+  # Nodes must have unique names
+  # Nodes can have multiple connection interfaces
+  psql "$master_url" --command "SELECT pglogical.create_node(node_name := 'aptible_publisher', dsn := '${PUBLISHER_DSN}')" \
+    || { echo "Error: Failed to create publisher node. Is there already a pglogical node on the ${database} database?" && exit 1; }
+  gosu postgres psql --dbname "${DB}" --command "SELECT pglogical.create_node(node_name := 'aptible_subscriber', dsn := '${SUBSCRIBER_DSN}')"
+
+  psql "$master_url" --command "SELECT pglogical.create_replication_set(set_name := '${REPLICATION_SET_NAME}')"
+  psql "$master_url" --command "SELECT pglogical.replication_set_add_all_tables('${REPLICATION_SET_NAME}', ARRAY['public'])"
+  psql "$master_url" --command "SELECT pglogical.replication_set_add_all_sequences('${REPLICATION_SET_NAME}', ARRAY['public'])"
+  gosu postgres psql --dbname "${DB}" --command "SELECT pglogical.create_subscription(subscription_name := 'aptible_subscription', provider_dsn := '${PUBLISHER_DSN}', replication_sets := ARRAY['${REPLICATION_SET_NAME}'])"
+  gosu postgres psql --dbname "${DB}" --command "SELECT pglogical.wait_for_subscription_sync_complete('aptible_subscription');"
+  gosu postgres /etc/init.d/postgresql stop
 
 elif [[ "$1" == "--initialize-backup" ]]; then
   # Remove recovery.conf if present to not start following the master.
