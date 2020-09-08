@@ -71,3 +71,33 @@ install-heartbleeder() {
 uninstall-heartbleeder() {
   rm -rf heartbleeder.zip heartbleeder
 }
+
+get_full_postgis_version()
+{
+  major=$1
+
+  dpkg-query --showformat='${Version}' --show "postgresql-${PG_VERSION}-postgis-${major}" | awk -F '+' '{print $1}'
+}
+
+check_postgis() {
+  major=$1
+
+  check_postgis_library $major
+  check_postgis_scripts $major
+}
+
+check_postgis_library() {
+  major=$1
+
+  # Ensure the library is available to support already-installed version of PostGIS
+  [[ -f /usr/lib/postgresql/${PG_VERSION}/lib/postgis-${major}.so ]]
+}
+
+
+check_postgis_scripts() {
+  major=$1
+
+  # Ensure the scripts are available to install this version of PostGIS
+  dpkg --status  postgresql-${PG_VERSION}-postgis-${major}-scripts | grep "Status: install ok installed"
+}
+

@@ -15,3 +15,12 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
   initialize_and_start_pg
   sudo -u postgres psql --command "CREATE EXTENSION pg_proctab;"
 }
+
+@test "It should support some version of PostGIS" {
+  # The versioning of the packages that gets installed is all messed up,
+  # but this version is deprecated so there's no need to make changes.
+
+  initialize_and_start_pg
+  run su postgres -c "psql --command \"CREATE EXTENSION postgis;\""
+  [ "$status" -eq "0" ]
+}
