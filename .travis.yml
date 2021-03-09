@@ -23,6 +23,7 @@ env:
     - TAG=12
     - TAG=12-contrib
     - TAG=13
+    - TAG=13-contrib
 
 script:
   - make build

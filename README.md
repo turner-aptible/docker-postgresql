@@ -51,11 +51,10 @@ In the `--contrib` images, the following extensions are available.
 | multicorn | 9.3 - 10 |
 | wal2json |  9.4 - 12 |
 | pg-safeupdate | 9.4 - 11 |
-| pglogical | 9.4 - 12 |
+| pglogical | 9.4 - 13 |
 | pg_repack | 9.4 - 11 |
-| pgagent | 9.4 - 12 |
-| pgagent|  9.4 - 11 |
-| pgaudit |  9.5 - 12 |
+| pgagent | 9.4 - 13 |
+| pgaudit |  9.5 - 13 |
 | pgcron | 10 |
 
 Aptible Support can update your Database to use the `--contrib` image.
