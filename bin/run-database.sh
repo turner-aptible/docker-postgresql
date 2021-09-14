@@ -184,35 +184,111 @@ elif [[ "$1" == "--initialize-from-logical" ]]; then
 
   initialize
 
-  parse_url "$master_url"
+  DBS="$(psql "$master_url" --tuples-only --no-align --command 'SELECT datname FROM pg_catalog.pg_database' | grep -E -v '^template')"
+  NUM_DBS="$(echo "$DBS" | wc -l)"
 
-  PUBLISHER_DSN="host=${host} port=${port} user=${user} password=${password} dbname=${database}"
-  SUBSCRIBER_DSN="host=127.0.0.1 port=${PORT:-"$DEFAULT_PORT"} user=${USERNAME:-aptible} password=${PASSPHRASE} dbname=${DB}"
-  REPLICATION_SET_NAME="aptible_replication_set"
+  echo "Configuring replication for databases:" $DBS
 
+  # Update max_worker_processes to handle multiple databases
+  # Need approximately 1 + number of subscriptions + number of databases for pglogical alone
+  # On a standby server, needs to be at least as many as the master database (default: 8)
   gosu postgres /etc/init.d/postgresql start
-  pg_dump --schema-only --schema public "$master_url" | gosu postgres psql --dbname "${DB}" > /dev/null
 
-  # PG 9.4 primary databases require the pglogical_origin extension to be installed
-  if psql "$master_url" --tuples-only --command "SELECT version()" | grep "PostgreSQL 9.4"; then
-    psql "$master_url" --command "CREATE EXTENSION IF NOT EXISTS pglogical_origin"
+  if [ "$NUM_DBS" > 2 ]; then
+    gosu postgres psql --dbname "${DB}" --command "ALTER SYSTEM SET max_worker_processes = $(( 4 * ${NUM_DBS} ))"
+
+    # Restart the database server to apply the new configuration
+    gosu postgres /etc/init.d/postgresql stop
+    gosu postgres /etc/init.d/postgresql start
   fi
 
-  psql "$master_url" --command "CREATE EXTENSION IF NOT EXISTS pglogical"
-  gosu postgres psql --dbname "${DB}" --command "CREATE EXTENSION IF NOT EXISTS pglogical"
+  parse_url "$master_url"
 
-  # There can only be one node per database
-  # Nodes must have unique names
-  # Nodes can have multiple connection interfaces
-  psql "$master_url" --command "SELECT pglogical.create_node(node_name := 'aptible_publisher', dsn := '${PUBLISHER_DSN}')" \
-    || { echo "Error: Failed to create publisher node. Is there already a pglogical node on the ${database} database?" && exit 1; }
-  gosu postgres psql --dbname "${DB}" --command "SELECT pglogical.create_node(node_name := 'aptible_subscriber', dsn := '${SUBSCRIBER_DSN}')"
+  MASTER_IS_PG_9_4="$(psql "$master_url" --tuples-only --command "SELECT version()" | grep "PostgreSQL 9.4" || true)"
+  REPLICATION_SET_NAME="aptible_replication_set"
 
-  psql "$master_url" --command "SELECT pglogical.create_replication_set(set_name := '${REPLICATION_SET_NAME}')"
-  psql "$master_url" --command "SELECT pglogical.replication_set_add_all_tables('${REPLICATION_SET_NAME}', ARRAY['public'])"
-  psql "$master_url" --command "SELECT pglogical.replication_set_add_all_sequences('${REPLICATION_SET_NAME}', ARRAY['public'])"
-  gosu postgres psql --dbname "${DB}" --command "SELECT pglogical.create_subscription(subscription_name := 'aptible_subscription', provider_dsn := '${PUBLISHER_DSN}', replication_sets := ARRAY['${REPLICATION_SET_NAME}'])"
-  gosu postgres psql --dbname "${DB}" --command "SELECT pglogical.wait_for_subscription_sync_complete('aptible_subscription');"
+  echo 'Replicating roles'
+
+  # Exclude roles that already exist on the replica or we'll see errors and
+  # potentially change its password or permissions unexpectedly
+  current_roles_dump_regex="ROLE ($(gosu postgres psql --dbname "${current_db}" --tuples-only --no-align --command 'SELECT rolname FROM pg_catalog.pg_roles' | tr '\n' '|'))\W"
+  pg_dumpall -r -d "$master_url" | grep -E -v "$current_roles_dump_regex" | gosu postgres psql --dbname "${DB}"
+
+  for current_db in $DBS; do
+    echo "Configuring replication for database ${current_db}"
+
+    if [ -z "$(gosu postgres psql --dbname "${DB}" --tuples-only --command "SELECT * FROM pg_catalog.pg_database where datname = '${current_db}'")" ]; then
+      gosu postgres psql --dbname "${DB}" --command "CREATE DATABASE ${current_db} WITH OWNER ${USERNAME:-aptible}"
+    fi
+
+    current_master_url="$(echo "$master_url" | sed "s|/${database}|/${current_db}|")"
+
+    PUBLISHER_DSN="host=${host} port=${port} user=${user} password=${password} dbname=${current_db}"
+    SUBSCRIBER_DSN="host=127.0.0.1 port=${PORT:-"$DEFAULT_PORT"} user=${USERNAME:-aptible} password=${PASSPHRASE} dbname=${current_db}"
+
+    # PG 9.4 primary databases require the pglogical_origin extension to be installed
+    if [ -n "$MASTER_IS_PG_9_4" ]; then
+      psql "$current_master_url" --command "CREATE EXTENSION IF NOT EXISTS pglogical_origin"
+    fi
+
+    psql "$current_master_url" --command "CREATE EXTENSION IF NOT EXISTS pglogical"
+    gosu postgres psql --dbname "${current_db}" --command "CREATE EXTENSION IF NOT EXISTS pglogical"
+
+    # Build SQL array of schemas on the master to replicate
+    # Exclude pg_, information_schema, and pglogical schemas
+    schemas="$(psql "$current_master_url" --tuples-only --no-align --command 'SELECT nspname FROM pg_namespace' | grep -Ev '^(pg_|(information_schema|pglogical(_origin)?)$)')"
+    schema_array=""
+
+    echo "Adding schemas to replication set:" $schemas
+
+    for schema in $schemas; do
+      schema_array="${schema_array},'${schema}'"
+    done
+
+    # Ignore first character in schema_array which is a leading comma
+    schema_array="ARRAY[${schema_array:1}]"
+
+    # There can only be one node per database
+    # Nodes must have unique names
+    psql "$current_master_url" --command "SELECT pglogical.create_node(node_name := 'aptible_publisher', dsn := '${PUBLISHER_DSN}')" \
+      || { echo "Error: Failed to create publisher node. Is there already a pglogical node on the ${current_db} database?" && exit 1; }
+    gosu postgres psql --dbname "${current_db}" --command "SELECT pglogical.create_node(node_name := 'aptible_subscriber', dsn := '${SUBSCRIBER_DSN}')"
+
+    # Create the replication set with tables and sequences from all of the database's schemas
+    psql "$current_master_url" --command "SELECT pglogical.create_replication_set(set_name := '${REPLICATION_SET_NAME}')"
+    psql "$current_master_url" --command "SELECT pglogical.replication_set_add_all_tables('${REPLICATION_SET_NAME}', ${schema_array})"
+    psql "$current_master_url" --command "SELECT pglogical.replication_set_add_all_sequences('${REPLICATION_SET_NAME}', ${schema_array})"
+
+    # Replicate the replication set we created as well as the ddl_sql replication set
+    # ddl_sql is used by default with the pglogical.replicate_ddl_command function
+    # Do not sync data when the subscription is first created (see below)
+    # synchronize_structure includes creating schemas, tables, and extensions
+    # Extensions are created without specifying a version so the default/latest is used
+    gosu postgres psql --dbname "${current_db}" --command "SELECT pglogical.create_subscription(subscription_name := 'aptible_subscription', provider_dsn := '${PUBLISHER_DSN}', replication_sets := ARRAY['ddl_sql'], synchronize_data := FALSE, synchronize_structure := TRUE)"
+    # Wait for the initial sync of the master database's structure
+    sleep 1 # PG 9.5- starts in the 'down' state so we need to wait before running the first check.
+    until gosu postgres psql --dbname "${current_db}" --tuples-only --no-align --command "SELECT status FROM pglogical.show_subscription_status('aptible_subscription');" | grep -E -v '^initializing$'; do
+      sleep 1
+    done
+    # If structure sync failed print postgres logs so the user can tell why
+    if gosu postgres psql --dbname "${current_db}" --tuples-only --no-align --command "SELECT status FROM pglogical.show_subscription_status('aptible_subscription');" | grep -E -v '^replicating$'; then
+      echo "Error syncing structure of ${current_db}"
+      cat /var/log/postgresql/*.log
+      exit 1
+    fi
+    # Disable the replication set before syncing data to prevent inserting new rows
+    gosu postgres psql --dbname "${current_db}" --command "SELECT pglogical.alter_subscription_disable('aptible_subscription');"
+
+    # After the structure sync, initiate the data sync but don't wait for it to complete
+    # pglogical will retry syncing the data each time the container starts until it succeeds
+    # This allows users to access the replica immediately after the structure is synced
+    # If any rows were inserted they'll conflict in the sync so we need to truncate the tables before syncing
+    gosu postgres psql --dbname "${current_db}" --command "SELECT pglogical.alter_subscription_add_replication_set('aptible_subscription', '${REPLICATION_SET_NAME}');"
+    gosu postgres psql --dbname "${current_db}" --command "SELECT pglogical.alter_subscription_synchronize('aptible_subscription', truncate := TRUE);"
+    # Then re-enable the subscription
+    gosu postgres psql --dbname "${current_db}" --command "SELECT pglogical.alter_subscription_enable('aptible_subscription');"
+  done
+
   gosu postgres /etc/init.d/postgresql stop
 
 elif [[ "$1" == "--initialize-backup" ]]; then
