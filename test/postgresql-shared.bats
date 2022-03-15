@@ -221,6 +221,16 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
   grep "log_min_duration_statement" /tmp/postgres.log
 }
 
+@test "It does not print primary_conninfo with the persistent configuration changes." {
+  versions-only ge 12
+  initialize_and_start_pg
+  echo " primary_conninfo = '12345'" >> "${DATA_DIRECTORY}/postgresql.auto.conf"
+
+  restart_pg
+  grep "persistent configuration changes" /tmp/postgres.log
+  ! grep "primary_conninfo =" /tmp/postgres.log
+}
+
 @test "It should support pglogical" {
   
   dpkg-query -l postgresql-${PG_VERSION}-pglogical
