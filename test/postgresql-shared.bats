@@ -250,3 +250,11 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
 
   [ ${NEWEST} != ${INSTALLED} ]
 }
+
+@test "It includes a valid TZ data" {
+  test -f /usr/share/zoneinfo/America/New_York
+}
+
+@test "It includes an updated TZ data" {
+  test -f /usr/share/zoneinfo/America/Ciudad_Juarez
+}

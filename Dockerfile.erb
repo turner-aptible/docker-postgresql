@@ -77,6 +77,11 @@ ENV PG_CRON_SHA1SUM <%= ENV.fetch 'PG_CRON_SHA1SUM' %>
 ADD "${TAG}"/install-extras.sh /install-extras.sh
 RUN /install-extras.sh
 
+ENV TZ_VERSION=tzdata2022g
+RUN cd /tmp && wget https://data.iana.org/time-zones/releases/${TZ_VERSION}.tar.gz \
+ && tar xfz ${TZ_VERSION}.tar.gz \
+ && zic northamerica
+
 ENV CONF_DIRECTORY /etc/postgresql/$PG_VERSION
 ADD templates/etc/postgresql/PG_VERSION $CONF_DIRECTORY
 
