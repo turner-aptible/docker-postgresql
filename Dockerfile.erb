@@ -80,7 +80,13 @@ RUN /install-extras.sh
 ENV TZ_VERSION=tzdata2022g
 RUN cd /tmp && wget https://data.iana.org/time-zones/releases/${TZ_VERSION}.tar.gz \
  && tar xfz ${TZ_VERSION}.tar.gz \
- && zic northamerica
+ && zic northamerica \
+ && zic africa \
+ && zic antarctica \
+ && zic australasia \
+ && zic europe \
+ && zic southamerica \
+ && zic asia
 
 ENV CONF_DIRECTORY /etc/postgresql/$PG_VERSION
 ADD templates/etc/postgresql/PG_VERSION $CONF_DIRECTORY
