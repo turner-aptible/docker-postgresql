@@ -77,6 +77,18 @@ ENV PG_CRON_SHA1SUM <%= ENV.fetch 'PG_CRON_SHA1SUM' %>
 ADD "${TAG}"/install-extras.sh /install-extras.sh
 RUN /install-extras.sh
 
+# https://tracker.debian.org/pkg/tzdata Once tzdata2022g becomes an offical release, removing this is needed.
+ENV TZ_VERSION=tzdata2022g
+RUN cd /tmp && wget https://data.iana.org/time-zones/releases/${TZ_VERSION}.tar.gz \
+ && tar xfz ${TZ_VERSION}.tar.gz \
+ && zic northamerica \
+ && zic africa \
+ && zic antarctica \
+ && zic australasia \
+ && zic europe \
+ && zic southamerica \
+ && zic asia
+
 ENV CONF_DIRECTORY /etc/postgresql/$PG_VERSION
 ADD templates/etc/postgresql/PG_VERSION $CONF_DIRECTORY
 
