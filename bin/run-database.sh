@@ -139,6 +139,7 @@ elif [[ "$1" == "--initialize-from" ]]; then
   parse_url "$2"
 
   basebackup_options=(
+    --checkpoint=fast
     -D "$DATA_DIRECTORY"
     -R
     -d "$protocol$REPL_USER:$REPL_PASS@$host_and_port/$database?ssl=true"
