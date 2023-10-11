@@ -1,4 +1,4 @@
-export DEBIAN_VERSION = bullseye
+export DEBIAN_VERSION = buster
 export POSTGRES_VERSION = 16
 export POSTGIS_VERSION = "3"
 export AUTH_METHOD = peer
