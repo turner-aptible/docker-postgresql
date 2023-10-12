@@ -26,11 +26,13 @@ function wait_for_pg {
 }
 
 test_reject_cipher() {
+  echo "test_reject_cipher"
   docker run --rm aptible/sslyze --starttls=postgres --hide_rejected_ciphers "$@" \
     | grep "Server rejected all cipher suites." > /dev/null
 }
 
 test_accept_cipher() {
+  echo "test_accept_cipher"
   docker run --rm aptible/sslyze --starttls=postgres --hide_rejected_ciphers "$@" \
     | grep "Preferred:" > /dev/null
 }
