@@ -98,7 +98,11 @@ function initialize() {
   pg_init_conf
   pg_init_data
 
-  gosu postgres "/usr/lib/postgresql/$PG_VERSION/bin/initdb" -D "$DATA_DIRECTORY"
+  if dpkg --compare-versions "$PG_VERSION" ge '15'; then
+    gosu postgres "/usr/lib/postgresql/$PG_VERSION/bin/initdb" -D "$DATA_DIRECTORY" --locale-provider="icu" --icu-locale="en"
+  else
+    gosu postgres "/usr/lib/postgresql/$PG_VERSION/bin/initdb" -D "$DATA_DIRECTORY"
+  fi
   gosu postgres /etc/init.d/postgresql start
   # The username is double-quoted because it's a name, but the password is single quoted, because it's a string.
   gosu postgres psql --command "CREATE USER \"${USERNAME:-aptible}\" WITH SUPERUSER PASSWORD '$PASSPHRASE'"
