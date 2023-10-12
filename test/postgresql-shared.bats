@@ -118,6 +118,19 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
   run-database.sh --client "$url" -c "SELECT * FROM foos;" | grep 'canary'
 }
 
+@test "It should use ICU as default collation for PostgreSQL 15 and beyond" {
+  versions-only ge 15
+  url="postgresql://aptible:foobar@127.0.0.1:5432/db"
+  initialize_and_start_pg
+  gosu postgres psql db -c'SHOW lc_collate;'
+}
+
+@test "It should use glibc as default collation for Postgres 14 and below" {
+  versions-only le 14
+  url="postgresql://aptible:foobar@127.0.0.1:5432/db"
+  initialize_and_start_pg
+  gosu postgres psql db -c'SHOW lc_collate;' | grep "en_US.utf8"
+}
 @test "It should set up a follower with --initialize-from" {
   initialize_and_start_pg
   FOLLOWER_DIRECTORY=/tmp/follower
@@ -242,9 +255,9 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
 }
 
 @test "It avoids upgrading to problematic glibc versions" {
-  versions-only le 14
   # https://wiki.postgresql.org/wiki/Locale_data_changes
   # Need to be sure for now that we're only building images with glibc before 2.28
+  versions-only le 14
   BAD="2.28"
   INSTALLED=$(ldd --version | head -n 1 | grep -oE '[^ ]+$')
   NEWEST=$(printf "${INSTALLED}\n${BAD}" | sort --version-sort | tail -n 1)
