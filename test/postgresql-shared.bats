@@ -122,14 +122,14 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
   versions-only ge 15
   url="postgresql://aptible:foobar@127.0.0.1:5432/db"
   initialize_and_start_pg
-  gosu postgres psql db -c'\l' | grep 'en-x-icu'
+  gosu postgres psql db -c'select datlocprovider from pg_database where datname=current_database();' | grep 'i'
 }
 
 @test "It should use glibc as default collation for Postgres 14 and below" {
   versions-only le 14
   url="postgresql://aptible:foobar@127.0.0.1:5432/db"
   initialize_and_start_pg
-  gosu postgres psql db -c'\l' | grep 'en_US.utf8'
+  gosu postgres psql db -c'select datcollate from pg_database where datname=current_database();' | grep 'en_US.utf8'
 }
 @test "It should set up a follower with --initialize-from" {
   initialize_and_start_pg
