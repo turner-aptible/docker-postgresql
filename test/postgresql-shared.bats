@@ -122,7 +122,7 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
   versions-only ge 15
   url="postgresql://aptible:foobar@127.0.0.1:5432/db"
   initialize_and_start_pg
-  gosu postgres psql db -c'SHOW lc_collate;'
+  gosu postgres psql db -c'select datname, datcollate from pg_database;'
 }
 
 @test "It should use glibc as default collation for Postgres 14 and below" {
