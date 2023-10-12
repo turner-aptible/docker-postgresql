@@ -3,7 +3,7 @@
 source "${BATS_TEST_DIRNAME}/test_helper.sh"
 
 @test "It should install PostgreSQL 15.4" {
-  /usr/lib/postgresql/14/bin/postgres --version | grep "15.4"
+  /usr/lib/postgresql/15/bin/postgres --version | grep "15.4"
 }
 
 @test "This image needs to forever support PostGIS 3" {
