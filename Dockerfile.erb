@@ -11,6 +11,10 @@ COPY GPGkeys /tmp/GPGkeys/
 ENV GOSU_VERSION 1.14
 RUN set -x \
  && apt-get update && apt-get install -y --no-install-recommends apt-transport-https ca-certificates wget gnupg2 && rm -rf /var/lib/apt/lists/* \
+ && ICU_TEMP_DEB="$(mktemp)" \
+ && wget -O "$ICU_TEMP_DEB" "http://ftp.de.debian.org/debian/pool/main/i/icu/libicu67_67.1-7_amd64.deb" \
+ && dpkg -i "$ICU_TEMP_DEB" \
+ && rm -f "$ICU_TEMP_DEB" \
  && wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$(dpkg --print-architecture)" \
  && wget -O /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$(dpkg --print-architecture).asc" \
  && export GNUPGHOME="$(mktemp -d)" \
