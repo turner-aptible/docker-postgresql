@@ -10,7 +10,7 @@ COPY GPGkeys /tmp/GPGkeys/
 # awkwardness.
 ENV GOSU_VERSION 1.14
 RUN set -x \
- && apt-get update && apt-get install -y --no-install-recommends apt-transport-https ca-certificates wget gnupg2 && rm -rf /var/lib/apt/lists/* \
+ && apt-get update && apt-get purge -y --ignore-missing libicu* && apt-get install -y --no-install-recommends apt-transport-https ca-certificates wget gnupg2 && rm -rf /var/lib/apt/lists/* \
  && ICU_TEMP_DEB="$(mktemp)" \
  && wget -O "$ICU_TEMP_DEB" "http://ftp.de.debian.org/debian/pool/main/i/icu/libicu67_67.1-7_amd64.deb" \
  && dpkg -i "$ICU_TEMP_DEB" \
