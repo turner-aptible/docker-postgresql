@@ -125,6 +125,13 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
   gosu postgres psql db -c'select datlocprovider from pg_database where datname=current_database();' | grep 'i'
 }
 
+@test "It should be collation version 153.14 for PostgreSQL 15 and beyond" {
+  versions-only ge 15
+  url="postgresql://aptible:foobar@127.0.0.1:5432/db"
+  initialize_and_start_pg
+  gosu postgres psql db -c'select datcollversion from pg_database where datname=current_database();' | grep '153.14'
+}
+
 @test "It should use glibc as default collation for Postgres 14 and below" {
   versions-only le 14
   url="postgresql://aptible:foobar@127.0.0.1:5432/db"
