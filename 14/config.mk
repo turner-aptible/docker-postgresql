@@ -1,4 +1,5 @@
 export DEBIAN_VERSION = stretch
+export DEBIAN_ID = 9
 export POSTGRES_VERSION = 14
 export POSTGIS_VERSION = "3"
 export AUTH_METHOD = peer

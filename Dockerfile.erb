@@ -22,8 +22,8 @@ RUN set -x \
  && gosu nobody true \
  && apt-get purge -y --auto-remove ca-certificates wget
 
-# Grab ICU67 for Debian 11> This is awkwardly based on Postgres version, since DEBIAN_VERSION is a string.
-<% if ENV.fetch('POSTGRES_VERSION').to_i >= 15 %>
+# Grab ICU67 for Debian 11 (bullseye) or greater to pin
+<% if ENV.fetch('DEBIAN_ID').to_i >= 11 %>
 RUN  set -x \
  && apt-get update && apt-get purge -y --ignore-missing libicu* && apt-get install -y --no-install-recommends wget \
  && ICU_TEMP_DEB="$(mktemp)" \
