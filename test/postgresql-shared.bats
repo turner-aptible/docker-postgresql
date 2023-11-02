@@ -119,6 +119,7 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
 }
 
 @test "It should use ICU as default collation for PostgreSQL 15 and beyond" {
+  skip 'keeping for future usage, but we are sticking with glibc for the immediate future'
   versions-only ge 15
   url="postgresql://aptible:foobar@127.0.0.1:5432/db"
   initialize_and_start_pg
@@ -126,6 +127,7 @@ source "${BATS_TEST_DIRNAME}/test_helper.sh"
 }
 
 @test "It should be collation version 153.14 for PostgreSQL 15 and beyond" {
+  skip 'keeping for future usage, but we are sticking with glibc for the immediate future'
   versions-only ge 15
   url="postgresql://aptible:foobar@127.0.0.1:5432/db"
   initialize_and_start_pg
