@@ -23,7 +23,7 @@ RUN set -x \
 
 # Grab ICU67 for Debian 11 (bullseye) or greater to pin
 # commenting out for now as there's ICU "uncertainty" - will just continue to use glibc for now
-# <% if ENV.fetch('DEBIAN_ID').to_i >= 11 %>
+# compare debian ID with # here. failing tests even when commented out. 
 # RUN  set -x \
 #  && apt-get update && apt-get purge -y --ignore-missing libicu* && apt-get install -y --no-install-recommends wget \
 #  && ICU_TEMP_DEB="$(mktemp)" \
